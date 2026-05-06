@@ -44,6 +44,11 @@ async function startServer() {
       createContext,
     })
   );
+  // Root health check route
+  app.get("/", (req, res) => {
+    res.send("Server is running");
+  });
+
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
@@ -64,6 +69,3 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
