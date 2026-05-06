@@ -1,0 +1,298 @@
+import { useState } from "react";
+import { Link } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
+import NewsCard from "@/components/NewsCard";
+import AdSlot from "@/components/AdSlot";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp, ChevronRight, Flame, Clock, BookOpen } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+const CATEGORIES = [
+  { slug: "politics", en: "Politics", ne: "राजनीति", color: "#dc2626" },
+  { slug: "business", en: "Business", ne: "व्यापार", color: "#2563eb" },
+  { slug: "technology", en: "Technology", ne: "प्रविधि", color: "#7c3aed" },
+  { slug: "sports", en: "Sports", ne: "खेलकुद", color: "#16a34a" },
+  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन", color: "#d97706" },
+  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय", color: "#0891b2" },
+];
+
+function SectionHeader({ en, ne, href }: { en: string; ne: string; href?: string }) {
+  const { t, isNepali } = useLanguage();
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-6 bg-news-red rounded-full" />
+        <h2 className={`text-lg font-bold ${isNepali ? "font-nepali" : ""}`}>{t(en, ne)}</h2>
+      </div>
+      {href && (
+        <Link href={href}>
+          <Button variant="ghost" size="sm" className="text-xs gap-1 text-muted-foreground hover:text-primary">
+            {t("View All", "सबै हेर्नुहोस्")} <ChevronRight className="w-3 h-3" />
+          </Button>
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function ArticleSkeleton() {
+  return (
+    <div className="rounded-xl overflow-hidden border border-border">
+      <Skeleton className="aspect-[16/10] w-full" />
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    </div>
+  );
+}
+
+export default function Home() {
+  const { t, isNepali } = useLanguage();
+  const [latestOffset, setLatestOffset] = useState(0);
+  const LATEST_LIMIT = 6;
+
+  const { data: featuredData, isLoading: featuredLoading } = trpc.articles.list.useQuery({
+    limit: 1,
+    featured: true,
+  });
+
+  const { data: latestData, isLoading: latestLoading } = trpc.articles.list.useQuery({
+    limit: LATEST_LIMIT,
+    offset: latestOffset,
+  });
+
+  const { data: trendingData } = trpc.articles.list.useQuery({
+    limit: 6,
+    trending: true,
+  });
+
+  const { data: categoriesData } = trpc.categories.list.useQuery();
+
+  const featuredArticle = featuredData?.articles?.[0];
+  const latestArticles = latestData?.articles ?? [];
+  const trendingArticles = trendingData?.articles ?? [];
+  const totalLatest = latestData?.total ?? 0;
+
+  return (
+    <div className="min-h-screen">
+      {/* Header Ad Banner */}
+      <div className="container py-3 flex justify-center">
+        <AdSlot type="banner" />
+      </div>
+
+      <div className="container pb-12">
+        {/* Hero + Sidebar layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+          {/* Main hero */}
+          <div className="lg:col-span-2">
+            {featuredLoading ? (
+              <Skeleton className="aspect-[16/9] w-full rounded-xl" />
+            ) : featuredArticle ? (
+              <NewsCard data={featuredArticle} variant="hero" />
+            ) : (
+              latestArticles[0] && <NewsCard data={latestArticles[0]} variant="hero" />
+            )}
+
+            {/* Second + Third articles */}
+            {latestArticles.length > 1 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                {latestArticles.slice(1, 3).map((item) => (
+                  <NewsCard key={item.article.id} data={item} variant="default" />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Trending */}
+            <div className="bg-card border border-border rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-4 h-4 text-news-red" />
+                <h3 className={`font-bold text-sm ${isNepali ? "font-nepali" : ""}`}>
+                  {t("Trending Now", "ट्रेन्डिङ")}
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {trendingArticles.length === 0
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex gap-2">
+                        <Skeleton className="w-16 h-12 rounded shrink-0" />
+                        <div className="flex-1 space-y-1">
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-3/4" />
+                        </div>
+                      </div>
+                    ))
+                  : trendingArticles.map((item) => (
+                      <NewsCard key={item.article.id} data={item} variant="horizontal" />
+                    ))}
+              </div>
+            </div>
+
+            {/* Sidebar Ad */}
+            <div className="flex justify-center">
+              <AdSlot type="sidebar" />
+            </div>
+          </div>
+        </div>
+
+        {/* Category quick-nav */}
+        <div className="flex gap-2 flex-wrap mb-8">
+          {CATEGORIES.map((cat) => (
+            <Link key={cat.slug} href={`/category/${cat.slug}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className={`text-xs gap-1.5 ${isNepali ? "font-nepali" : ""}`}
+                style={{ borderColor: cat.color + "40", color: cat.color }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                {t(cat.en, cat.ne)}
+              </Button>
+            </Link>
+          ))}
+        </div>
+
+        {/* Latest news grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <SectionHeader en="Latest News" ne="ताजा समाचार" />
+
+            {latestLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <ArticleSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {latestArticles.map((item, idx) => (
+                    <div key={item.article.id}>
+                      <NewsCard data={item} variant="default" showExcerpt />
+                      {/* In-article ad after 4th item */}
+                      {idx === 3 && (
+                        <div className="col-span-full my-4 flex justify-center">
+                          <AdSlot type="in-article" className="w-full" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalLatest > LATEST_LIMIT && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={latestOffset === 0}
+                      onClick={() => setLatestOffset(Math.max(0, latestOffset - LATEST_LIMIT))}
+                    >
+                      {t("Previous", "अघिल्लो")}
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {t(
+                        `Page ${Math.floor(latestOffset / LATEST_LIMIT) + 1} of ${Math.ceil(totalLatest / LATEST_LIMIT)}`,
+                        `पृष्ठ ${Math.floor(latestOffset / LATEST_LIMIT) + 1} / ${Math.ceil(totalLatest / LATEST_LIMIT)}`
+                      )}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={latestOffset + LATEST_LIMIT >= totalLatest}
+                      onClick={() => setLatestOffset(latestOffset + LATEST_LIMIT)}
+                    >
+                      {t("Next", "अर्को")}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right sidebar */}
+          <div className="space-y-6">
+            {/* Categories */}
+            <div className="bg-card border border-border rounded-xl p-4">
+              <SectionHeader en="Categories" ne="श्रेणीहरू" />
+              <div className="space-y-1">
+                {(categoriesData ?? []).map((cat) => (
+                  <Link key={cat.id} href={`/category/${cat.slug}`}>
+                    <div className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-accent transition-colors group">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: cat.color ?? "#dc2626" }}
+                        />
+                        <span
+                          className={`text-sm font-medium group-hover:text-primary transition-colors ${
+                            isNepali ? "font-nepali" : ""
+                          }`}
+                        >
+                          {isNepali && cat.nameNe ? cat.nameNe : cat.name}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Second sidebar ad */}
+            <div className="flex justify-center">
+              <AdSlot type="sidebar" />
+            </div>
+          </div>
+        </div>
+
+        {/* Category sections */}
+        {CATEGORIES.slice(0, 3).map((cat) => (
+          <CategorySection key={cat.slug} slug={cat.slug} en={cat.en} ne={cat.ne} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CategorySection({ slug, en, ne }: { slug: string; en: string; ne: string }) {
+  const { t, isNepali } = useLanguage();
+  const { data: catData } = trpc.categories.list.useQuery();
+  const category = catData?.find((c) => c.slug === slug);
+
+  const { data, isLoading } = trpc.articles.list.useQuery(
+    { limit: 4, categoryId: category?.id },
+    { enabled: !!category?.id }
+  );
+
+  const articles = data?.articles ?? [];
+  if (!isLoading && articles.length === 0) return null;
+
+  return (
+    <div className="mt-10">
+      <SectionHeader en={en} ne={ne} href={`/category/${slug}`} />
+      <Separator className="mb-4" />
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <ArticleSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {articles.map((item) => (
+            <NewsCard key={item.article.id} data={item} variant="default" />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
