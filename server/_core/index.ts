@@ -64,6 +64,4 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
+
