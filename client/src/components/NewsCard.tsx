@@ -3,6 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, Eye, Zap, Star, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { localizedArticle, localizedCategory } from "@/lib/i18n";
 
 interface ArticleData {
   article: {
@@ -40,13 +41,20 @@ interface NewsCardProps {
   showExcerpt?: boolean;
 }
 
-export default function NewsCard({ data, variant = "default", showExcerpt = false }: NewsCardProps) {
+export default function NewsCard({
+  data,
+  variant = "default",
+  showExcerpt = false,
+}: NewsCardProps) {
   const { t, isNepali } = useLanguage();
   const { article, category, author } = data;
 
-  const title = isNepali && article.titleNe ? article.titleNe : article.title;
-  const excerpt = isNepali && article.excerptNe ? article.excerptNe : article.excerpt;
-  const categoryName = isNepali && category?.nameNe ? category.nameNe : category?.name;
+  const localized = localizedArticle(article, isNepali);
+  const title = localized.title;
+  const excerpt = localized.excerpt;
+  const categoryName = category
+    ? localizedCategory(category, isNepali).name
+    : undefined;
   const timeAgo = article.publishedAt
     ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })
     : formatDistanceToNow(new Date(article.createdAt), { addSuffix: true });
@@ -80,13 +88,19 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
                 <Badge
                   variant="secondary"
                   className="text-xs"
-                  style={{ backgroundColor: category.color + "33", color: category.color ?? undefined }}
+                  style={{
+                    backgroundColor: category.color + "33",
+                    color: category.color ?? undefined,
+                  }}
                 >
                   {categoryName}
                 </Badge>
               )}
               {article.isSponsored && (
-                <Badge variant="outline" className="text-xs text-white border-white/50">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-white border-white/50"
+                >
                   {t("Sponsored", "प्रायोजित")}
                 </Badge>
               )}
@@ -99,7 +113,9 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
               {title}
             </h2>
             {excerpt && (
-              <p className={`text-white/75 text-sm line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}>
+              <p
+                className={`text-white/75 text-sm line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}
+              >
                 {excerpt}
               </p>
             )}
@@ -162,7 +178,10 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
 
   if (variant === "compact") {
     return (
-      <Link href={`/article/${article.slug}`} className="group flex items-start gap-2 py-2">
+      <Link
+        href={`/article/${article.slug}`}
+        className="group flex items-start gap-2 py-2"
+      >
         <div className="w-1.5 h-1.5 rounded-full bg-news-red mt-2 shrink-0" />
         <div className="flex-1 min-w-0">
           <h4
@@ -226,7 +245,9 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
             {title}
           </h3>
           {showExcerpt && excerpt && (
-            <p className={`text-sm text-muted-foreground line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}>
+            <p
+              className={`text-sm text-muted-foreground line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}
+            >
               {excerpt}
             </p>
           )}

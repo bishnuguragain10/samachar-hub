@@ -14,6 +14,7 @@ import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
 import BookmarksPage from "./pages/BookmarksPage";
 import AdminPanel from "./pages/AdminPanel";
+import AdminLoginPage from "./pages/AdminLoginPage";
 import HiddenAdminAccessPage from "./pages/HiddenAdminAccessPage";
 import LoginPage from "./pages/LoginPage";
 
@@ -80,6 +81,10 @@ function AdminWithLayout() {
   return <AdminPanel />;
 }
 
+function AdminLoginWithLayout() {
+  return <AdminLoginPage />;
+}
+
 function Router() {
   return (
     <Switch>
@@ -90,6 +95,7 @@ function Router() {
       <Route path="/bookmarks">{() => <BookmarksWithLayout />}</Route>
       <Route path="/login">{() => <LoginWithLayout />}</Route>
       <Route path="/hidden-admin-access">{() => <HiddenAdminAccessPage />}</Route>
+      <Route path="/admin/login">{() => <AdminLoginWithLayout />}</Route>
       <Route path="/admin">{() => <AdminWithLayout />}</Route>
       <Route path="/admin/:rest*">{() => <AdminWithLayout />}</Route>
       <Route path="/404">{() => <NotFound />}</Route>

@@ -39,7 +39,10 @@ import {
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
   }
   return next({ ctx });
 });
@@ -48,7 +51,7 @@ export const appRouter = router({
   system: systemRouter,
 
   auth: router({
-    me: publicProcedure.query((opts) => opts.ctx.user),
+    me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
@@ -122,17 +125,37 @@ export const appRouter = router({
       }),
 
     related: publicProcedure
-      .input(z.object({ articleId: z.number(), categoryId: z.number().nullable() }))
-      .query(({ input }) => getRelatedArticles(input.articleId, input.categoryId)),
+      .input(
+        z.object({ articleId: z.number(), categoryId: z.number().nullable() })
+      )
+      .query(({ input }) =>
+        getRelatedArticles(input.articleId, input.categoryId)
+      ),
 
     search: publicProcedure
-      .input(z.object({ query: z.string(), limit: z.number().default(10), offset: z.number().default(0) }))
-      .query(({ input }) => searchArticles(input.query, input.limit, input.offset)),
+      .input(
+        z.object({
+          query: z.string(),
+          limit: z.number().default(10),
+          offset: z.number().default(0),
+        })
+      )
+      .query(({ input }) =>
+        searchArticles(input.query, input.limit, input.offset)
+      ),
 
     // Admin procedures
     adminList: adminProcedure
-      .input(z.object({ limit: z.number().default(20), offset: z.number().default(0) }))
-      .query(({ input }) => getAllArticlesAdmin(input.limit, input.offset)),
+      .input(
+        z.object({
+          limit: z.number().default(20),
+          offset: z.number().default(0),
+          status: z.enum(["draft", "published", "scheduled"]).optional(),
+        })
+      )
+      .query(({ input }) =>
+        getAllArticlesAdmin(input.limit, input.offset, input.status)
+      ),
 
     adminGetById: adminProcedure
       .input(z.object({ id: z.number() }))
@@ -148,6 +171,8 @@ export const appRouter = router({
           excerptNe: z.string().optional(),
           content: z.string().min(1),
           contentNe: z.string().optional(),
+          aiSummary: z.string().optional(),
+          aiSummaryNe: z.string().optional(),
           coverImage: z.string().optional(),
           coverImageKey: z.string().optional(),
           categoryId: z.number().optional(),
@@ -170,17 +195,28 @@ export const appRouter = router({
           try {
             const resp = await invokeLLM({
               messages: [
-                { role: "system", content: "You are a news editor. Write a concise 2-3 sentence summary of the following news article. Be factual and neutral." },
-                { role: "user", content: `Title: ${input.title}\n\n${input.content.substring(0, 3000)}` },
+                {
+                  role: "system",
+                  content:
+                    "You are a news editor. Write a concise 2-3 sentence summary of the following news article. Be factual and neutral.",
+                },
+                {
+                  role: "user",
+                  content: `Title: ${input.title}\n\n${input.content.substring(0, 3000)}`,
+                },
               ],
             });
             const content = resp.choices[0]?.message?.content;
-            aiSummary = typeof content === 'string' ? content : undefined;
+            aiSummary = typeof content === "string" ? content : undefined;
           } catch (e) {
             console.error("AI summary failed:", e);
           }
         }
-        return createArticle({ ...articleData, authorId: ctx.user.id, aiSummary } as Parameters<typeof createArticle>[0]);
+        return createArticle({
+          ...articleData,
+          authorId: ctx.user.id,
+          aiSummary: aiSummary ?? articleData.aiSummary,
+        } as Parameters<typeof createArticle>[0]);
       }),
 
     update: adminProcedure
@@ -195,6 +231,7 @@ export const appRouter = router({
           content: z.string().optional(),
           contentNe: z.string().optional(),
           aiSummary: z.string().optional(),
+          aiSummaryNe: z.string().optional(),
           coverImage: z.string().optional(),
           coverImageKey: z.string().optional(),
           categoryId: z.number().optional(),
@@ -207,6 +244,7 @@ export const appRouter = router({
           tags: z.string().optional(),
           metaTitle: z.string().optional(),
           metaDescription: z.string().optional(),
+          viewCount: z.number().optional(),
           scheduledAt: z.date().optional(),
           generateSummary: z.boolean().optional(),
         })
@@ -217,12 +255,20 @@ export const appRouter = router({
           try {
             const resp = await invokeLLM({
               messages: [
-                { role: "system", content: "You are a news editor. Write a concise 2-3 sentence summary of the following news article. Be factual and neutral." },
-                { role: "user", content: `Title: ${data.title ?? ""}\n\n${data.content.substring(0, 3000)}` },
+                {
+                  role: "system",
+                  content:
+                    "You are a news editor. Write a concise 2-3 sentence summary of the following news article. Be factual and neutral.",
+                },
+                {
+                  role: "user",
+                  content: `Title: ${data.title ?? ""}\n\n${data.content.substring(0, 3000)}`,
+                },
               ],
             });
             const content2 = resp.choices[0]?.message?.content;
-            data.aiSummary = typeof content2 === 'string' ? content2 : undefined;
+            data.aiSummary =
+              typeof content2 === "string" ? content2 : undefined;
           } catch (e) {
             console.error("AI summary failed:", e);
           }
@@ -236,7 +282,13 @@ export const appRouter = router({
       .mutation(({ input }) => deleteArticle(input.id)),
 
     uploadImage: adminProcedure
-      .input(z.object({ base64: z.string(), filename: z.string(), mimeType: z.string() }))
+      .input(
+        z.object({
+          base64: z.string(),
+          filename: z.string(),
+          mimeType: z.string(),
+        })
+      )
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const key = `articles/${Date.now()}-${input.filename}`;
@@ -271,7 +323,12 @@ export const appRouter = router({
       }),
 
     adminList: adminProcedure
-      .input(z.object({ limit: z.number().default(20), offset: z.number().default(0) }))
+      .input(
+        z.object({
+          limit: z.number().default(20),
+          offset: z.number().default(0),
+        })
+      )
       .query(({ input }) => getAllCommentsAdmin(input.limit, input.offset)),
 
     approve: adminProcedure
@@ -297,7 +354,9 @@ export const appRouter = router({
 
     remove: protectedProcedure
       .input(z.object({ articleId: z.number() }))
-      .mutation(({ input, ctx }) => removeBookmark(ctx.user.id, input.articleId)),
+      .mutation(({ input, ctx }) =>
+        removeBookmark(ctx.user.id, input.articleId)
+      ),
 
     check: protectedProcedure
       .input(z.object({ articleId: z.number() }))
@@ -307,7 +366,9 @@ export const appRouter = router({
   // ─── Newsletter ────────────────────────────────────────────────────
   newsletter: router({
     subscribe: publicProcedure
-      .input(z.object({ email: z.string().email(), name: z.string().optional() }))
+      .input(
+        z.object({ email: z.string().email(), name: z.string().optional() })
+      )
       .mutation(({ input }) => subscribeNewsletter(input.email, input.name)),
 
     adminList: adminProcedure.query(() => getNewsletterSubscribers()),
@@ -320,11 +381,14 @@ export const appRouter = router({
     promoteUser: adminProcedure
       .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
       .mutation(async ({ input }) => {
-        const db = await import("./db").then((m) => m.getDb());
+        const db = await import("./db").then(m => m.getDb());
         if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { users: usersTable } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
-        await db.update(usersTable).set({ role: input.role }).where(eq(usersTable.id, input.userId));
+        await db
+          .update(usersTable)
+          .set({ role: input.role })
+          .where(eq(usersTable.id, input.userId));
         return { success: true };
       }),
   }),
@@ -332,7 +396,7 @@ export const appRouter = router({
   // ─── Scheduled posts ───────────────────────────────────────────────
   scheduled: router({
     processScheduled: publicProcedure.mutation(async () => {
-      const db = await import("./db").then((m) => m.getDb());
+      const db = await import("./db").then(m => m.getDb());
       if (!db) return { processed: 0 };
       const { articles: articlesTable } = await import("../drizzle/schema");
       const { and, eq, lte } = await import("drizzle-orm");

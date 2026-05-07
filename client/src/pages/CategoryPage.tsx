@@ -7,6 +7,7 @@ import AdSlot from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { localizedCategory } from "@/lib/i18n";
 
 export default function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,7 +16,7 @@ export default function CategoryPage() {
   const LIMIT = 9;
 
   const { data: categoriesData } = trpc.categories.list.useQuery();
-  const category = categoriesData?.find((c) => c.slug === slug);
+  const category = categoriesData?.find(c => c.slug === slug);
 
   const { data, isLoading } = trpc.articles.list.useQuery(
     { limit: LIMIT, offset, categoryId: category?.id },
@@ -24,7 +25,8 @@ export default function CategoryPage() {
 
   const articles = data?.articles ?? [];
   const total = data?.total ?? 0;
-  const categoryName = isNepali && category?.nameNe ? category.nameNe : category?.name;
+  const localized = category ? localizedCategory(category, isNepali) : null;
+  const categoryName = localized?.name;
 
   return (
     <div className="min-h-screen">
@@ -36,13 +38,17 @@ export default function CategoryPage() {
               className="w-1 h-8 rounded-full"
               style={{ backgroundColor: category?.color ?? "var(--news-red)" }}
             />
-            <h1 className={`text-3xl font-bold ${isNepali ? "font-nepali" : ""}`}>
+            <h1
+              className={`text-3xl font-bold ${isNepali ? "font-nepali" : ""}`}
+            >
               {categoryName ?? slug}
             </h1>
           </div>
-          {category?.description && (
-            <p className={`text-muted-foreground ml-4 ${isNepali ? "font-nepali" : ""}`}>
-              {isNepali && category.descriptionNe ? category.descriptionNe : category.description}
+          {localized?.description && (
+            <p
+              className={`text-muted-foreground ml-4 ${isNepali ? "font-nepali" : ""}`}
+            >
+              {localized.description}
             </p>
           )}
           <Separator className="mt-4" />
@@ -53,7 +59,10 @@ export default function CategoryPage() {
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden border border-border">
+                  <div
+                    key={i}
+                    className="rounded-xl overflow-hidden border border-border"
+                  >
                     <Skeleton className="aspect-[16/10] w-full" />
                     <div className="p-4 space-y-2">
                       <Skeleton className="h-3 w-20" />
@@ -66,7 +75,10 @@ export default function CategoryPage() {
             ) : articles.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground">
                 <p className={`text-lg ${isNepali ? "font-nepali" : ""}`}>
-                  {t("No articles found in this category.", "यस श्रेणीमा कुनै लेख फेला परेन।")}
+                  {t(
+                    "No articles found in this category.",
+                    "यस श्रेणीमा कुनै लेख फेला परेन।"
+                  )}
                 </p>
               </div>
             ) : (
@@ -121,13 +133,15 @@ export default function CategoryPage() {
 
             {/* Other categories */}
             <div className="bg-card border border-border rounded-xl p-4">
-              <h3 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
+              <h3
+                className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+              >
                 {t("Other Categories", "अन्य श्रेणीहरू")}
               </h3>
               <div className="space-y-1">
                 {(categoriesData ?? [])
-                  .filter((c) => c.slug !== slug)
-                  .map((cat) => (
+                  .filter(c => c.slug !== slug)
+                  .map(cat => (
                     <a
                       key={cat.id}
                       href={`/category/${cat.slug}`}
@@ -137,7 +151,9 @@ export default function CategoryPage() {
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: cat.color ?? "#dc2626" }}
                       />
-                      <span className={`text-sm ${isNepali ? "font-nepali" : ""}`}>
+                      <span
+                        className={`text-sm ${isNepali ? "font-nepali" : ""}`}
+                      >
                         {isNepali && cat.nameNe ? cat.nameNe : cat.name}
                       </span>
                     </a>

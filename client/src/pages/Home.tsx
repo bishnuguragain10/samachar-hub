@@ -9,28 +9,54 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, ChevronRight, Flame, Clock, BookOpen } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { localizedCategory } from "@/lib/i18n";
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   { slug: "politics", en: "Politics", ne: "राजनीति", color: "#dc2626" },
   { slug: "business", en: "Business", ne: "व्यापार", color: "#2563eb" },
   { slug: "technology", en: "Technology", ne: "प्रविधि", color: "#7c3aed" },
   { slug: "sports", en: "Sports", ne: "खेलकुद", color: "#16a34a" },
-  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन", color: "#d97706" },
-  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय", color: "#0891b2" },
+  {
+    slug: "entertainment",
+    en: "Entertainment",
+    ne: "मनोरञ्जन",
+    color: "#d97706",
+  },
+  {
+    slug: "international",
+    en: "International",
+    ne: "अन्तर्राष्ट्रिय",
+    color: "#0891b2",
+  },
 ];
 
-function SectionHeader({ en, ne, href }: { en: string; ne: string; href?: string }) {
+function SectionHeader({
+  en,
+  ne,
+  href,
+}: {
+  en: string;
+  ne: string;
+  href?: string;
+}) {
   const { t, isNepali } = useLanguage();
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
         <div className="w-1 h-6 bg-news-red rounded-full" />
-        <h2 className={`text-lg font-bold ${isNepali ? "font-nepali" : ""}`}>{t(en, ne)}</h2>
+        <h2 className={`text-lg font-bold ${isNepali ? "font-nepali" : ""}`}>
+          {t(en, ne)}
+        </h2>
       </div>
       {href && (
         <Link href={href}>
-          <Button variant="ghost" size="sm" className="text-xs gap-1 text-muted-foreground hover:text-primary">
-            {t("View All", "सबै हेर्नुहोस्")} <ChevronRight className="w-3 h-3" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1 text-muted-foreground hover:text-primary"
+          >
+            {t("View All", "सबै हेर्नुहोस्")}{" "}
+            <ChevronRight className="w-3 h-3" />
           </Button>
         </Link>
       )}
@@ -57,15 +83,17 @@ export default function Home() {
   const [latestOffset, setLatestOffset] = useState(0);
   const LATEST_LIMIT = 6;
 
-  const { data: featuredData, isLoading: featuredLoading } = trpc.articles.list.useQuery({
-    limit: 1,
-    featured: true,
-  });
+  const { data: featuredData, isLoading: featuredLoading } =
+    trpc.articles.list.useQuery({
+      limit: 1,
+      featured: true,
+    });
 
-  const { data: latestData, isLoading: latestLoading } = trpc.articles.list.useQuery({
-    limit: LATEST_LIMIT,
-    offset: latestOffset,
-  });
+  const { data: latestData, isLoading: latestLoading } =
+    trpc.articles.list.useQuery({
+      limit: LATEST_LIMIT,
+      offset: latestOffset,
+    });
 
   const { data: trendingData } = trpc.articles.list.useQuery({
     limit: 6,
@@ -73,6 +101,14 @@ export default function Home() {
   });
 
   const { data: categoriesData } = trpc.categories.list.useQuery();
+  const categories = categoriesData?.length
+    ? categoriesData
+    : FALLBACK_CATEGORIES.map(cat => ({
+        slug: cat.slug,
+        name: cat.en,
+        nameNe: cat.ne,
+        color: cat.color,
+      }));
 
   const featuredArticle = featuredData?.articles?.[0];
   const latestArticles = latestData?.articles ?? [];
@@ -96,14 +132,20 @@ export default function Home() {
             ) : featuredArticle ? (
               <NewsCard data={featuredArticle} variant="hero" />
             ) : (
-              latestArticles[0] && <NewsCard data={latestArticles[0]} variant="hero" />
+              latestArticles[0] && (
+                <NewsCard data={latestArticles[0]} variant="hero" />
+              )
             )}
 
             {/* Second + Third articles */}
             {latestArticles.length > 1 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                {latestArticles.slice(1, 3).map((item) => (
-                  <NewsCard key={item.article.id} data={item} variant="default" />
+                {latestArticles.slice(1, 3).map(item => (
+                  <NewsCard
+                    key={item.article.id}
+                    data={item}
+                    variant="default"
+                  />
                 ))}
               </div>
             )}
@@ -115,7 +157,9 @@ export default function Home() {
             <div className="bg-card border border-border rounded-xl p-4">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-4 h-4 text-news-red" />
-                <h3 className={`font-bold text-sm ${isNepali ? "font-nepali" : ""}`}>
+                <h3
+                  className={`font-bold text-sm ${isNepali ? "font-nepali" : ""}`}
+                >
                   {t("Trending Now", "ट्रेन्डिङ")}
                 </h3>
               </div>
@@ -130,8 +174,12 @@ export default function Home() {
                         </div>
                       </div>
                     ))
-                  : trendingArticles.map((item) => (
-                      <NewsCard key={item.article.id} data={item} variant="horizontal" />
+                  : trendingArticles.map(item => (
+                      <NewsCard
+                        key={item.article.id}
+                        data={item}
+                        variant="horizontal"
+                      />
                     ))}
               </div>
             </div>
@@ -145,19 +193,25 @@ export default function Home() {
 
         {/* Category quick-nav */}
         <div className="flex gap-2 flex-wrap mb-8">
-          {CATEGORIES.map((cat) => (
-            <Link key={cat.slug} href={`/category/${cat.slug}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className={`text-xs gap-1.5 ${isNepali ? "font-nepali" : ""}`}
-                style={{ borderColor: cat.color + "40", color: cat.color }}
-              >
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                {t(cat.en, cat.ne)}
-              </Button>
-            </Link>
-          ))}
+          {categories.map(cat => {
+            const color = cat.color ?? "#dc2626";
+            return (
+              <Link key={cat.slug} href={`/category/${cat.slug}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`text-xs gap-1.5 ${isNepali ? "font-nepali" : ""}`}
+                  style={{ borderColor: color + "40", color }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                  {localizedCategory(cat, isNepali).name}
+                </Button>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Latest news grid */}
@@ -194,7 +248,11 @@ export default function Home() {
                       variant="outline"
                       size="sm"
                       disabled={latestOffset === 0}
-                      onClick={() => setLatestOffset(Math.max(0, latestOffset - LATEST_LIMIT))}
+                      onClick={() =>
+                        setLatestOffset(
+                          Math.max(0, latestOffset - LATEST_LIMIT)
+                        )
+                      }
                     >
                       {t("Previous", "अघिल्लो")}
                     </Button>
@@ -208,7 +266,9 @@ export default function Home() {
                       variant="outline"
                       size="sm"
                       disabled={latestOffset + LATEST_LIMIT >= totalLatest}
-                      onClick={() => setLatestOffset(latestOffset + LATEST_LIMIT)}
+                      onClick={() =>
+                        setLatestOffset(latestOffset + LATEST_LIMIT)
+                      }
                     >
                       {t("Next", "अर्को")}
                     </Button>
@@ -224,7 +284,7 @@ export default function Home() {
             <div className="bg-card border border-border rounded-xl p-4">
               <SectionHeader en="Categories" ne="श्रेणीहरू" />
               <div className="space-y-1">
-                {(categoriesData ?? []).map((cat) => (
+                {(categoriesData ?? []).map(cat => (
                   <Link key={cat.id} href={`/category/${cat.slug}`}>
                     <div className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-accent transition-colors group">
                       <div className="flex items-center gap-2">
@@ -237,7 +297,7 @@ export default function Home() {
                             isNepali ? "font-nepali" : ""
                           }`}
                         >
-                          {isNepali && cat.nameNe ? cat.nameNe : cat.name}
+                          {localizedCategory(cat, isNepali).name}
                         </span>
                       </div>
                       <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
@@ -255,18 +315,31 @@ export default function Home() {
         </div>
 
         {/* Category sections */}
-        {CATEGORIES.slice(0, 3).map((cat) => (
-          <CategorySection key={cat.slug} slug={cat.slug} en={cat.en} ne={cat.ne} />
+        {categories.slice(0, 3).map(cat => (
+          <CategorySection
+            key={cat.slug}
+            slug={cat.slug}
+            en={cat.name}
+            ne={cat.nameNe ?? cat.name}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function CategorySection({ slug, en, ne }: { slug: string; en: string; ne: string }) {
+function CategorySection({
+  slug,
+  en,
+  ne,
+}: {
+  slug: string;
+  en: string;
+  ne: string;
+}) {
   const { t, isNepali } = useLanguage();
   const { data: catData } = trpc.categories.list.useQuery();
-  const category = catData?.find((c) => c.slug === slug);
+  const category = catData?.find(c => c.slug === slug);
 
   const { data, isLoading } = trpc.articles.list.useQuery(
     { limit: 4, categoryId: category?.id },
@@ -288,7 +361,7 @@ function CategorySection({ slug, en, ne }: { slug: string; en: string; ne: strin
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {articles.map((item) => (
+          {articles.map(item => (
             <NewsCard key={item.article.id} data={item} variant="default" />
           ))}
         </div>

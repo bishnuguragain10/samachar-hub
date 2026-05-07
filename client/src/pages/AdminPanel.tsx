@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   LayoutDashboard,
@@ -63,50 +63,118 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-type AdminTab = "dashboard" | "articles" | "new-article" | "edit-article" | "categories" | "comments" | "users" | "newsletter";
+type AdminTab =
+  | "dashboard"
+  | "articles"
+  | "drafts"
+  | "published"
+  | "scheduled"
+  | "new-article"
+  | "edit-article"
+  | "categories"
+  | "media"
+  | "comments"
+  | "users"
+  | "newsletter"
+  | "settings";
 
 export default function AdminPanel() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const { t } = useLanguage();
+  const [, setLocation] = useLocation();
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const [editArticleId, setEditArticleId] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen"><Skeleton className="w-48 h-8" /></div>;
-  }
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      setLocation("/admin/login", { replace: true });
+    }
+  }, [isAuthenticated, loading, setLocation]);
 
-  if (!isAuthenticated) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
-          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
-          <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
-        </div>
+        <Skeleton className="w-48 h-8" />
       </div>
     );
   }
 
   if (user?.role !== "admin") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
-          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
-          <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-4 py-12">
+        <div className="max-w-md text-center">
+          <h2 className="text-xl font-bold mb-2">
+            {t("Access Denied", "पहुँच अस्वीकृत")}
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            {t(
+              "Your current account is not an admin. Sign in below with the admin credentials to continue.",
+              "तपाईंको हालको खाता प्रशासक होइन। जारी राख्न तल प्रशासक विवरणबाट साइन इन गर्नुहोस्।"
+            )}
+          </p>
+          <Link href="/">
+            <Button variant="outline">
+              {t("Go Home", "गृहपृष्ठमा जानुहोस्")}
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
   const navItems = [
-    { id: "dashboard" as AdminTab, icon: LayoutDashboard, en: "Dashboard", ne: "ड्यासबोर्ड" },
-    { id: "articles" as AdminTab, icon: FileText, en: "Articles", ne: "लेखहरू" },
-    { id: "categories" as AdminTab, icon: Tag, en: "Categories", ne: "श्रेणीहरू" },
-    { id: "comments" as AdminTab, icon: MessageSquare, en: "Comments", ne: "टिप्पणीहरू" },
+    {
+      id: "dashboard" as AdminTab,
+      icon: LayoutDashboard,
+      en: "Dashboard",
+      ne: "ड्यासबोर्ड",
+    },
+    {
+      id: "articles" as AdminTab,
+      icon: FileText,
+      en: "All Articles",
+      ne: "सबै लेखहरू",
+    },
+    { id: "drafts" as AdminTab, icon: Edit, en: "Drafts", ne: "मस्यौदाहरू" },
+    { id: "published" as AdminTab, icon: Eye, en: "Published", ne: "प्रकाशित" },
+    {
+      id: "scheduled" as AdminTab,
+      icon: Clock,
+      en: "Scheduled",
+      ne: "अनुसूचित",
+    },
+    {
+      id: "categories" as AdminTab,
+      icon: Tag,
+      en: "Categories",
+      ne: "श्रेणीहरू",
+    },
+    {
+      id: "media" as AdminTab,
+      icon: Upload,
+      en: "Media Library",
+      ne: "मिडिया लाइब्रेरी",
+    },
+    {
+      id: "comments" as AdminTab,
+      icon: MessageSquare,
+      en: "Comments",
+      ne: "टिप्पणीहरू",
+    },
     { id: "users" as AdminTab, icon: Users, en: "Users", ne: "प्रयोगकर्ताहरू" },
-    { id: "newsletter" as AdminTab, icon: Mail, en: "Newsletter", ne: "न्यूजलेटर" },
+    {
+      id: "newsletter" as AdminTab,
+      icon: Mail,
+      en: "Newsletter",
+      ne: "न्यूजलेटर",
+    },
+    {
+      id: "settings" as AdminTab,
+      icon: Sparkles,
+      en: "Site Settings",
+      ne: "साइट सेटिङहरू",
+    },
   ];
 
   const handleEditArticle = (id: number) => {
@@ -117,7 +185,9 @@ export default function AdminPanel() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-60 bg-card border-r border-border flex flex-col transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:z-auto`}>
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-60 bg-card border-r border-border flex flex-col transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:z-auto`}
+      >
         <div className="p-4 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-news-red rounded-lg flex items-center justify-center">
@@ -131,12 +201,17 @@ export default function AdminPanel() {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
+          {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => { setTab(item.id); setSidebarOpen(false); }}
+              onClick={() => {
+                setTab(item.id);
+                setSidebarOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === item.id || (tab === "new-article" && item.id === "articles") || (tab === "edit-article" && item.id === "articles")
+                tab === item.id ||
+                (tab === "new-article" && item.id === "articles") ||
+                (tab === "edit-article" && item.id === "articles")
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent text-foreground"
               }`}
@@ -157,7 +232,12 @@ export default function AdminPanel() {
               <div className="text-xs text-muted-foreground">Admin</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs" onClick={logout}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-xs"
+            onClick={logout}
+          >
             <LogOut className="w-3.5 h-3.5" />
             {t("Sign Out", "साइन आउट")}
           </Button>
@@ -166,21 +246,34 @@ export default function AdminPanel() {
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <div className="sticky top-0 z-20 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="lg:hidden h-8 w-8 p-0" onClick={() => setSidebarOpen(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden h-8 w-8 p-0"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu className="w-4 h-4" />
           </Button>
           <h1 className="font-bold text-base flex-1">
-            {navItems.find((n) => n.id === tab)?.en ?? (tab === "new-article" ? "New Article" : "Edit Article")}
+            {navItems.find(n => n.id === tab)?.en ??
+              (tab === "new-article" ? "New Article" : "Edit Article")}
           </h1>
           {tab === "articles" && (
-            <Button size="sm" className="bg-news-red text-white gap-1" onClick={() => setTab("new-article")}>
+            <Button
+              size="sm"
+              className="bg-news-red text-white gap-1"
+              onClick={() => setTab("new-article")}
+            >
               <Plus className="w-3.5 h-3.5" />
               {t("New Article", "नयाँ लेख")}
             </Button>
@@ -189,15 +282,48 @@ export default function AdminPanel() {
 
         <div className="flex-1 p-4 overflow-auto">
           {tab === "dashboard" && <AdminDashboard onNavigate={setTab} />}
-          {tab === "articles" && <AdminArticles onEdit={handleEditArticle} onNew={() => setTab("new-article")} />}
-          {tab === "new-article" && <ArticleEditor onBack={() => setTab("articles")} />}
+          {tab === "articles" && (
+            <AdminArticles
+              onEdit={handleEditArticle}
+              onNew={() => setTab("new-article")}
+            />
+          )}
+          {tab === "drafts" && (
+            <AdminArticles
+              statusFilter="draft"
+              onEdit={handleEditArticle}
+              onNew={() => setTab("new-article")}
+            />
+          )}
+          {tab === "published" && (
+            <AdminArticles
+              statusFilter="published"
+              onEdit={handleEditArticle}
+              onNew={() => setTab("new-article")}
+            />
+          )}
+          {tab === "scheduled" && (
+            <AdminArticles
+              statusFilter="scheduled"
+              onEdit={handleEditArticle}
+              onNew={() => setTab("new-article")}
+            />
+          )}
+          {tab === "new-article" && (
+            <ArticleEditor onBack={() => setTab("articles")} />
+          )}
           {tab === "edit-article" && editArticleId && (
-            <ArticleEditor articleId={editArticleId} onBack={() => setTab("articles")} />
+            <ArticleEditor
+              articleId={editArticleId}
+              onBack={() => setTab("articles")}
+            />
           )}
           {tab === "categories" && <AdminCategories />}
+          {tab === "media" && <AdminMediaLibrary onEdit={handleEditArticle} />}
           {tab === "comments" && <AdminComments />}
           {tab === "users" && <AdminUsers />}
           {tab === "newsletter" && <AdminNewsletter />}
+          {tab === "settings" && <AdminSettings />}
         </div>
       </main>
     </div>
@@ -205,32 +331,73 @@ export default function AdminPanel() {
 }
 
 // ─── Dashboard ─────────────────────────────────────────────────────────────
-function AdminDashboard({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
+function AdminDashboard({
+  onNavigate,
+}: {
+  onNavigate: (tab: AdminTab) => void;
+}) {
   const { t } = useLanguage();
   const { data: stats, isLoading } = trpc.admin.stats.useQuery();
 
   const statCards = [
-    { label: t("Total Articles", "कुल लेखहरू"), value: stats?.totalArticles ?? 0, icon: FileText, color: "text-blue-500" },
-    { label: t("Published", "प्रकाशित"), value: stats?.publishedArticles ?? 0, icon: Eye, color: "text-green-500" },
-    { label: t("Comments", "टिप्पणीहरू"), value: stats?.totalComments ?? 0, icon: MessageSquare, color: "text-purple-500" },
-    { label: t("Pending", "प्रतीक्षारत"), value: stats?.pendingComments ?? 0, icon: Clock, color: "text-orange-500" },
-    { label: t("Subscribers", "सदस्यहरू"), value: stats?.totalSubscribers ?? 0, icon: Mail, color: "text-pink-500" },
-    { label: t("Users", "प्रयोगकर्ताहरू"), value: stats?.totalUsers ?? 0, icon: Users, color: "text-cyan-500" },
+    {
+      label: t("Total Articles", "कुल लेखहरू"),
+      value: stats?.totalArticles ?? 0,
+      icon: FileText,
+      color: "text-blue-500",
+    },
+    {
+      label: t("Published", "प्रकाशित"),
+      value: stats?.publishedArticles ?? 0,
+      icon: Eye,
+      color: "text-green-500",
+    },
+    {
+      label: t("Comments", "टिप्पणीहरू"),
+      value: stats?.totalComments ?? 0,
+      icon: MessageSquare,
+      color: "text-purple-500",
+    },
+    {
+      label: t("Pending", "प्रतीक्षारत"),
+      value: stats?.pendingComments ?? 0,
+      icon: Clock,
+      color: "text-orange-500",
+    },
+    {
+      label: t("Subscribers", "सदस्यहरू"),
+      value: stats?.totalSubscribers ?? 0,
+      icon: Mail,
+      color: "text-pink-500",
+    },
+    {
+      label: t("Users", "प्रयोगकर्ताहरू"),
+      value: stats?.totalUsers ?? 0,
+      icon: Users,
+      color: "text-cyan-500",
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {statCards.map((card) => (
-          <div key={card.label} className="bg-card border border-border rounded-xl p-4">
+        {statCards.map(card => (
+          <div
+            key={card.label}
+            className="bg-card border border-border rounded-xl p-4"
+          >
             <div className="flex items-center gap-2 mb-2">
               <card.icon className={`w-4 h-4 ${card.color}`} />
-              <span className="text-xs text-muted-foreground">{card.label}</span>
+              <span className="text-xs text-muted-foreground">
+                {card.label}
+              </span>
             </div>
             {isLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{card.value.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                {card.value.toLocaleString()}
+              </div>
             )}
           </div>
         ))}
@@ -242,17 +409,27 @@ function AdminDashboard({ onNavigate }: { onNavigate: (tab: AdminTab) => void })
           className="bg-news-red text-white rounded-xl p-4 text-left hover:bg-news-red/90 transition-colors"
         >
           <Plus className="w-6 h-6 mb-2" />
-          <div className="font-bold">{t("Write New Article", "नयाँ लेख लेख्नुहोस्")}</div>
-          <div className="text-sm text-white/70">{t("Create and publish content", "सामग्री सिर्जना र प्रकाशन गर्नुहोस्")}</div>
+          <div className="font-bold">
+            {t("Write New Article", "नयाँ लेख लेख्नुहोस्")}
+          </div>
+          <div className="text-sm text-white/70">
+            {t(
+              "Create and publish content",
+              "सामग्री सिर्जना र प्रकाशन गर्नुहोस्"
+            )}
+          </div>
         </button>
         <button
           onClick={() => onNavigate("comments")}
           className="bg-card border border-border rounded-xl p-4 text-left hover:bg-accent transition-colors"
         >
           <MessageSquare className="w-6 h-6 mb-2 text-orange-500" />
-          <div className="font-bold">{t("Moderate Comments", "टिप्पणी मध्यस्थता")}</div>
+          <div className="font-bold">
+            {t("Moderate Comments", "टिप्पणी मध्यस्थता")}
+          </div>
           <div className="text-sm text-muted-foreground">
-            {stats?.pendingComments ?? 0} {t("pending review", "समीक्षाको प्रतीक्षामा")}
+            {stats?.pendingComments ?? 0}{" "}
+            {t("pending review", "समीक्षाको प्रतीक्षामा")}
           </div>
         </button>
       </div>
@@ -261,15 +438,38 @@ function AdminDashboard({ onNavigate }: { onNavigate: (tab: AdminTab) => void })
 }
 
 // ─── Articles List ──────────────────────────────────────────────────────────
-function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew: () => void }) {
+function AdminArticles({
+  onEdit,
+  onNew,
+  statusFilter,
+}: {
+  onEdit: (id: number) => void;
+  onNew: () => void;
+  statusFilter?: "draft" | "published" | "scheduled";
+}) {
   const { t } = useLanguage();
   const [offset, setOffset] = useState(0);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const LIMIT = 15;
 
-  const { data, isLoading, refetch } = trpc.articles.adminList.useQuery({ limit: LIMIT, offset });
+  const { data, isLoading, refetch } = trpc.articles.adminList.useQuery({
+    limit: LIMIT,
+    offset,
+    status: statusFilter,
+  });
   const deleteArticle = trpc.articles.delete.useMutation({
-    onSuccess: () => { refetch(); toast.success(t("Article deleted", "लेख मेटाइयो")); setDeleteId(null); },
+    onSuccess: () => {
+      refetch();
+      toast.success(t("Article deleted", "लेख मेटाइयो"));
+      setDeleteId(null);
+    },
+  });
+  const updateFlags = trpc.articles.update.useMutation({
+    onSuccess: () => {
+      refetch();
+      toast.success(t("Article updated", "लेख अपडेट भयो"));
+    },
+    onError: err => toast.error(err.message),
   });
 
   const articles = data?.articles ?? [];
@@ -279,7 +479,9 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
     <div className="space-y-4">
       {isLoading ? (
         <div className="space-y-2">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+          ))}
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -287,21 +489,43 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
             <table className="w-full text-sm">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold">{t("Title", "शीर्षक")}</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Category", "श्रेणी")}</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("Status", "स्थिति")}</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">{t("Date", "मिति")}</th>
-                  <th className="text-right px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
+                  <th className="text-left px-4 py-3 font-semibold">
+                    {t("Title", "शीर्षक")}
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">
+                    {t("Category", "श्रेणी")}
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
+                    {t("Status", "स्थिति")}
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">
+                    {t("Date", "मिति")}
+                  </th>
+                  <th className="text-right px-4 py-3 font-semibold">
+                    {t("Actions", "कार्यहरू")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {articles.map((item) => (
-                  <tr key={item.article.id} className="hover:bg-muted/30 transition-colors">
+                {articles.map(item => (
+                  <tr
+                    key={item.article.id}
+                    className="hover:bg-muted/30 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        {item.article.isBreaking && <Zap className="w-3 h-3 text-news-red shrink-0" />}
-                        {item.article.isFeatured && <Star className="w-3 h-3 text-yellow-500 shrink-0" />}
-                        <span className="font-medium line-clamp-1 max-w-xs">{item.article.title}</span>
+                        {item.article.isBreaking && (
+                          <Zap className="w-3 h-3 text-news-red shrink-0" />
+                        )}
+                        {item.article.isFeatured && (
+                          <Star className="w-3 h-3 text-yellow-500 shrink-0" />
+                        )}
+                        {item.article.viewCount >= 10000 && (
+                          <TrendingUp className="w-3 h-3 text-blue-500 shrink-0" />
+                        )}
+                        <span className="font-medium line-clamp-1 max-w-xs">
+                          {item.article.title}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
@@ -309,8 +533,16 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <Badge
-                        variant={item.article.status === "published" ? "default" : "secondary"}
-                        className={item.article.status === "published" ? "bg-green-500/10 text-green-600 border-green-200" : ""}
+                        variant={
+                          item.article.status === "published"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className={
+                          item.article.status === "published"
+                            ? "bg-green-500/10 text-green-600 border-green-200"
+                            : ""
+                        }
                       >
                         {item.article.status}
                       </Badge>
@@ -320,7 +552,61 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onEdit(item.article.id)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          title={t("Toggle Breaking", "ब्रेकिङ टगल")}
+                          onClick={() =>
+                            updateFlags.mutate({
+                              id: item.article.id,
+                              isBreaking: !item.article.isBreaking,
+                            })
+                          }
+                        >
+                          <Zap
+                            className={`w-3.5 h-3.5 ${item.article.isBreaking ? "text-news-red" : ""}`}
+                          />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          title={t("Toggle Featured", "फिचर्ड टगल")}
+                          onClick={() =>
+                            updateFlags.mutate({
+                              id: item.article.id,
+                              isFeatured: !item.article.isFeatured,
+                            })
+                          }
+                        >
+                          <Star
+                            className={`w-3.5 h-3.5 ${item.article.isFeatured ? "text-yellow-500" : ""}`}
+                          />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          title={t("Toggle Trending", "ट्रेन्डिङ टगल")}
+                          onClick={() =>
+                            updateFlags.mutate({
+                              id: item.article.id,
+                              viewCount:
+                                item.article.viewCount >= 10000 ? 0 : 10000,
+                            })
+                          }
+                        >
+                          <TrendingUp
+                            className={`w-3.5 h-3.5 ${item.article.viewCount >= 10000 ? "text-blue-500" : ""}`}
+                          />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => onEdit(item.article.id)}
+                        >
                           <Edit className="w-3.5 h-3.5" />
                         </Button>
                         <Button
@@ -343,26 +629,48 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
 
       {total > LIMIT && (
         <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - LIMIT))}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={offset === 0}
+            onClick={() => setOffset(Math.max(0, offset - LIMIT))}
+          >
             {t("Previous", "अघिल्लो")}
           </Button>
-          <span className="text-sm text-muted-foreground">{offset + 1}–{Math.min(offset + LIMIT, total)} / {total}</span>
-          <Button variant="outline" size="sm" disabled={offset + LIMIT >= total} onClick={() => setOffset(offset + LIMIT)}>
+          <span className="text-sm text-muted-foreground">
+            {offset + 1}–{Math.min(offset + LIMIT, total)} / {total}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={offset + LIMIT >= total}
+            onClick={() => setOffset(offset + LIMIT)}
+          >
             {t("Next", "अर्को")}
           </Button>
         </div>
       )}
 
-      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={() => setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("Delete Article?", "लेख मेटाउने?")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("Delete Article?", "लेख मेटाउने?")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("This action cannot be undone.", "यो कार्य पूर्ववत गर्न सकिँदैन।")}
+              {t(
+                "This action cannot be undone.",
+                "यो कार्य पूर्ववत गर्न सकिँदैन।"
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("Cancel", "रद्द गर्नुहोस्")}</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("Cancel", "रद्द गर्नुहोस्")}
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-white"
               onClick={() => deleteId && deleteArticle.mutate({ id: deleteId })}
@@ -377,14 +685,21 @@ function AdminArticles({ onEdit, onNew }: { onEdit: (id: number) => void; onNew:
 }
 
 // ─── Article Editor ─────────────────────────────────────────────────────────
-function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () => void }) {
+function ArticleEditor({
+  articleId,
+  onBack,
+}: {
+  articleId?: number;
+  onBack: () => void;
+}) {
   const { t } = useLanguage();
   const utils = trpc.useUtils();
 
-  const { data: existingData, isLoading: loadingExisting } = trpc.articles.adminGetById.useQuery(
-    { id: articleId! },
-    { enabled: !!articleId }
-  );
+  const { data: existingData, isLoading: loadingExisting } =
+    trpc.articles.adminGetById.useQuery(
+      { id: articleId! },
+      { enabled: !!articleId }
+    );
   const { data: categoriesData } = trpc.categories.list.useQuery();
 
   const existing = existingData?.article;
@@ -397,6 +712,8 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
     excerptNe: "",
     content: "",
     contentNe: "",
+    aiSummary: "",
+    aiSummaryNe: "",
     coverImage: "",
     categoryId: "",
     status: "draft" as "draft" | "published" | "scheduled",
@@ -407,11 +724,14 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
     tags: "",
     metaTitle: "",
     metaDescription: "",
+    scheduledAt: "",
     generateSummary: false,
   });
 
   const [imageUploading, setImageUploading] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [languageTab, setLanguageTab] = useState<"en" | "ne">("en");
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Initialize form with existing data
   if (existing && !initialized) {
@@ -423,6 +743,8 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       excerptNe: existing.excerptNe ?? "",
       content: existing.content,
       contentNe: existing.contentNe ?? "",
+      aiSummary: existing.aiSummary ?? "",
+      aiSummaryNe: existing.aiSummaryNe ?? "",
       coverImage: existing.coverImage ?? "",
       categoryId: existing.categoryId?.toString() ?? "",
       status: existing.status,
@@ -433,6 +755,9 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       tags: existing.tags ?? "",
       metaTitle: existing.metaTitle ?? "",
       metaDescription: existing.metaDescription ?? "",
+      scheduledAt: existing.scheduledAt
+        ? new Date(existing.scheduledAt).toISOString().slice(0, 16)
+        : "",
       generateSummary: false,
     });
     setInitialized(true);
@@ -444,7 +769,7 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       utils.articles.adminList.invalidate();
       onBack();
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   const updateArticle = trpc.articles.update.useMutation({
@@ -453,15 +778,15 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       utils.articles.adminList.invalidate();
       onBack();
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   const uploadImage = trpc.articles.uploadImage.useMutation({
-    onSuccess: (data) => {
-      setForm((f) => ({ ...f, coverImage: data.url }));
+    onSuccess: data => {
+      setForm(f => ({ ...f, coverImage: data.url }));
       toast.success(t("Image uploaded!", "तस्बिर अपलोड गरियो!"));
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -472,7 +797,11 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = (reader.result as string).split(",")[1];
-        uploadImage.mutate({ base64, filename: file.name, mimeType: file.type });
+        uploadImage.mutate({
+          base64,
+          filename: file.name,
+          mimeType: file.type,
+        });
         setImageUploading(false);
       };
       reader.readAsDataURL(file);
@@ -500,6 +829,8 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       excerptNe: form.excerptNe || undefined,
       content: form.content,
       contentNe: form.contentNe || undefined,
+      aiSummary: form.aiSummary || undefined,
+      aiSummaryNe: form.aiSummaryNe || undefined,
       coverImage: form.coverImage || undefined,
       categoryId: form.categoryId ? parseInt(form.categoryId) : undefined,
       status: form.status,
@@ -510,6 +841,7 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
       tags: form.tags || undefined,
       metaTitle: form.metaTitle || undefined,
       metaDescription: form.metaDescription || undefined,
+      scheduledAt: form.scheduledAt ? new Date(form.scheduledAt) : undefined,
       generateSummary: form.generateSummary,
     };
 
@@ -523,99 +855,223 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
   const isSubmitting = createArticle.isPending || updateArticle.isPending;
 
   if (loadingExisting) {
-    return <div className="space-y-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>;
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-2 mb-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onBack} className="gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          className="gap-1"
+        >
           ← {t("Back", "फिर्ता")}
         </Button>
-        <h2 className="font-bold">{articleId ? t("Edit Article", "लेख सम्पादन") : t("New Article", "नयाँ लेख")}</h2>
+        <h2 className="font-bold">
+          {articleId
+            ? t("Edit Article", "लेख सम्पादन")
+            : t("New Article", "नयाँ लेख")}
+        </h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-4">
-          <div>
-            <Label>{t("Title (English)", "शीर्षक (अंग्रेजी)")} *</Label>
-            <Input
-              value={form.title}
-              onChange={(e) => {
-                setForm((f) => ({ ...f, title: e.target.value, slug: generateSlug(e.target.value) }));
-              }}
-              placeholder="Article title in English"
-              required
-              className="mt-1"
-            />
-          </div>
+          <Tabs
+            value={languageTab}
+            onValueChange={v => setLanguageTab(v as "en" | "ne")}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <TabsList>
+                <TabsTrigger value="en">English</TabsTrigger>
+                <TabsTrigger value="ne" className="font-nepali">
+                  नेपाली
+                </TabsTrigger>
+              </TabsList>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewMode(v => !v)}
+              >
+                {previewMode
+                  ? t("Edit", "सम्पादन")
+                  : t("Preview", "पूर्वावलोकन")}
+              </Button>
+            </div>
 
-          <div>
-            <Label className="font-nepali">{t("Title (Nepali)", "शीर्षक (नेपाली)")}</Label>
-            <Input
-              value={form.titleNe}
-              onChange={(e) => setForm((f) => ({ ...f, titleNe: e.target.value }))}
-              placeholder="नेपालीमा शीर्षक"
-              className="mt-1 font-nepali"
-            />
-          </div>
+            <TabsContent value="en" className="space-y-4 mt-4">
+              {previewMode ? (
+                <ArticlePreview
+                  title={form.title}
+                  excerpt={form.excerpt}
+                  content={form.content}
+                  summary={form.aiSummary}
+                />
+              ) : (
+                <>
+                  <div>
+                    <Label>{t("Title (English)", "शीर्षक (अंग्रेजी)")} *</Label>
+                    <Input
+                      value={form.title}
+                      onChange={e => {
+                        setForm(f => ({
+                          ...f,
+                          title: e.target.value,
+                          slug: generateSlug(e.target.value),
+                        }));
+                      }}
+                      placeholder="Article title in English"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>
+                      {t("Excerpt/Summary (English)", "सारांश (अंग्रेजी)")}
+                    </Label>
+                    <Textarea
+                      value={form.excerpt}
+                      onChange={e =>
+                        setForm(f => ({ ...f, excerpt: e.target.value }))
+                      }
+                      placeholder="Brief summary of the article..."
+                      rows={2}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>
+                      {t(
+                        "AI/Editor Summary (English)",
+                        "सम्पादकीय सारांश (अंग्रेजी)"
+                      )}
+                    </Label>
+                    <Textarea
+                      value={form.aiSummary}
+                      onChange={e =>
+                        setForm(f => ({ ...f, aiSummary: e.target.value }))
+                      }
+                      placeholder="Optional editor summary shown on article detail pages"
+                      rows={3}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>
+                      {t("Content (English)", "सामग्री (अंग्रेजी)")} *
+                    </Label>
+                    <Textarea
+                      value={form.content}
+                      onChange={e =>
+                        setForm(f => ({ ...f, content: e.target.value }))
+                      }
+                      placeholder="Full article content. You can use HTML tags for formatting."
+                      rows={14}
+                      required
+                      className="mt-1 font-mono text-sm"
+                    />
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            <TabsContent value="ne" className="space-y-4 mt-4">
+              {previewMode ? (
+                <ArticlePreview
+                  title={form.titleNe || form.title}
+                  excerpt={form.excerptNe || form.excerpt}
+                  content={form.contentNe || form.content}
+                  summary={form.aiSummaryNe || form.aiSummary}
+                  nepali
+                />
+              ) : (
+                <>
+                  <div>
+                    <Label className="font-nepali">
+                      {t("Title (Nepali)", "शीर्षक (नेपाली)")}
+                    </Label>
+                    <Input
+                      value={form.titleNe}
+                      onChange={e =>
+                        setForm(f => ({ ...f, titleNe: e.target.value }))
+                      }
+                      placeholder="नेपालीमा शीर्षक"
+                      className="mt-1 font-nepali"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-nepali">
+                      {t("Excerpt/Summary (Nepali)", "सारांश (नेपाली)")}
+                    </Label>
+                    <Textarea
+                      value={form.excerptNe}
+                      onChange={e =>
+                        setForm(f => ({ ...f, excerptNe: e.target.value }))
+                      }
+                      placeholder="लेखको संक्षिप्त सारांश..."
+                      rows={2}
+                      className="mt-1 font-nepali"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-nepali">
+                      {t(
+                        "AI/Editor Summary (Nepali)",
+                        "सम्पादकीय सारांश (नेपाली)"
+                      )}
+                    </Label>
+                    <Textarea
+                      value={form.aiSummaryNe}
+                      onChange={e =>
+                        setForm(f => ({ ...f, aiSummaryNe: e.target.value }))
+                      }
+                      placeholder="नेपालीमा वैकल्पिक सारांश"
+                      rows={3}
+                      className="mt-1 font-nepali"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-nepali">
+                      {t("Content (Nepali)", "सामग्री (नेपाली)")}
+                    </Label>
+                    <Textarea
+                      value={form.contentNe}
+                      onChange={e =>
+                        setForm(f => ({ ...f, contentNe: e.target.value }))
+                      }
+                      placeholder="नेपालीमा पूर्ण लेख सामग्री..."
+                      rows={14}
+                      className="mt-1 font-nepali"
+                    />
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
 
           <div>
             <Label>{t("URL Slug", "URL स्लग")}</Label>
             <Input
               value={form.slug}
-              onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+              onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
               placeholder="article-url-slug"
               className="mt-1 font-mono text-sm"
-            />
-          </div>
-
-          <div>
-            <Label>{t("Excerpt (English)", "सारांश (अंग्रेजी)")}</Label>
-            <Textarea
-              value={form.excerpt}
-              onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))}
-              placeholder="Brief summary of the article..."
-              rows={2}
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label className="font-nepali">{t("Excerpt (Nepali)", "सारांश (नेपाली)")}</Label>
-            <Textarea
-              value={form.excerptNe}
-              onChange={(e) => setForm((f) => ({ ...f, excerptNe: e.target.value }))}
-              placeholder="लेखको संक्षिप्त सारांश..."
-              rows={2}
-              className="mt-1 font-nepali"
-            />
-          </div>
-
-          <div>
-            <Label>{t("Content (English)", "सामग्री (अंग्रेजी)")} *</Label>
-            <Textarea
-              value={form.content}
-              onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-              placeholder="Full article content. You can use HTML tags for formatting."
-              rows={12}
-              required
-              className="mt-1 font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {t("Supports HTML: <b>, <i>, <h2>, <h3>, <p>, <ul>, <ol>, <blockquote>", "HTML समर्थन गर्दछ")}
-            </p>
-          </div>
-
-          <div>
-            <Label className="font-nepali">{t("Content (Nepali)", "सामग्री (नेपाली)")}</Label>
-            <Textarea
-              value={form.contentNe}
-              onChange={(e) => setForm((f) => ({ ...f, contentNe: e.target.value }))}
-              placeholder="नेपालीमा पूर्ण लेख सामग्री..."
-              rows={8}
-              className="mt-1 font-nepali"
             />
           </div>
 
@@ -623,7 +1079,9 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
             <Label>{t("YouTube URL", "YouTube URL")}</Label>
             <Input
               value={form.youtubeUrl}
-              onChange={(e) => setForm((f) => ({ ...f, youtubeUrl: e.target.value }))}
+              onChange={e =>
+                setForm(f => ({ ...f, youtubeUrl: e.target.value }))
+              }
               placeholder="https://www.youtube.com/watch?v=..."
               className="mt-1"
             />
@@ -631,32 +1089,72 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
 
           {/* SEO */}
           <div className="border border-border rounded-xl p-4 space-y-3">
-            <h3 className="font-semibold text-sm">{t("SEO Settings", "SEO सेटिङहरू")}</h3>
+            <h3 className="font-semibold text-sm">
+              {t("SEO Settings", "SEO सेटिङहरू")}
+            </h3>
             <div>
-              <Label className="text-xs">{t("Meta Title", "मेटा शीर्षक")}</Label>
+              <Label className="text-xs">
+                {t("Meta Title", "मेटा शीर्षक")}
+              </Label>
               <Input
                 value={form.metaTitle}
-                onChange={(e) => setForm((f) => ({ ...f, metaTitle: e.target.value }))}
+                onChange={e =>
+                  setForm(f => ({ ...f, metaTitle: e.target.value }))
+                }
                 placeholder="SEO title (defaults to article title)"
                 className="mt-1 text-sm"
               />
             </div>
             <div>
-              <Label className="text-xs">{t("Meta Description", "मेटा विवरण")}</Label>
+              <Label className="text-xs">
+                {t("Meta Description", "मेटा विवरण")}
+              </Label>
               <Textarea
                 value={form.metaDescription}
-                onChange={(e) => setForm((f) => ({ ...f, metaDescription: e.target.value }))}
+                onChange={e =>
+                  setForm(f => ({ ...f, metaDescription: e.target.value }))
+                }
                 placeholder="SEO description (max 160 chars)"
                 rows={2}
                 className="mt-1 text-sm"
               />
             </div>
             <div>
-              <Label className="text-xs">{t("Tags (comma separated)", "ट्यागहरू (अल्पविरामले छुट्याउनुहोस्)")}</Label>
+              <Label className="text-xs">
+                {t(
+                  "Tags (comma separated)",
+                  "ट्यागहरू (अल्पविरामले छुट्याउनुहोस्)"
+                )}
+              </Label>
               <Input
                 value={form.tags}
-                onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
                 placeholder="nepal, politics, kathmandu"
+                className="mt-1 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">{t("SEO Title", "SEO शीर्षक")}</Label>
+              <Input
+                value={form.metaTitle}
+                onChange={e =>
+                  setForm(f => ({ ...f, metaTitle: e.target.value }))
+                }
+                placeholder="SEO title"
+                className="mt-1 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">
+                {t("SEO Description", "SEO विवरण")}
+              </Label>
+              <Textarea
+                value={form.metaDescription}
+                onChange={e =>
+                  setForm(f => ({ ...f, metaDescription: e.target.value }))
+                }
+                placeholder="SEO description"
+                rows={2}
                 className="mt-1 text-sm"
               />
             </div>
@@ -667,20 +1165,28 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
         <div className="space-y-4">
           {/* Publish settings */}
           <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-            <h3 className="font-semibold text-sm">{t("Publish Settings", "प्रकाशन सेटिङहरू")}</h3>
+            <h3 className="font-semibold text-sm">
+              {t("Publish Settings", "प्रकाशन सेटिङहरू")}
+            </h3>
             <div>
               <Label className="text-xs">{t("Status", "स्थिति")}</Label>
               <Select
                 value={form.status}
-                onValueChange={(v) => setForm((f) => ({ ...f, status: v as typeof form.status }))}
+                onValueChange={v =>
+                  setForm(f => ({ ...f, status: v as typeof form.status }))
+                }
               >
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">{t("Draft", "मस्यौदा")}</SelectItem>
-                  <SelectItem value="published">{t("Published", "प्रकाशित")}</SelectItem>
-                  <SelectItem value="scheduled">{t("Scheduled", "अनुसूचित")}</SelectItem>
+                  <SelectItem value="published">
+                    {t("Published", "प्रकाशित")}
+                  </SelectItem>
+                  <SelectItem value="scheduled">
+                    {t("Scheduled", "अनुसूचित")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -689,13 +1195,15 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
               <Label className="text-xs">{t("Category", "श्रेणी")}</Label>
               <Select
                 value={form.categoryId}
-                onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
+                onValueChange={v => setForm(f => ({ ...f, categoryId: v }))}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={t("Select category", "श्रेणी छान्नुहोस्")} />
+                  <SelectValue
+                    placeholder={t("Select category", "श्रेणी छान्नुहोस्")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {(categoriesData ?? []).map((cat) => (
+                  {(categoriesData ?? []).map(cat => (
                     <SelectItem key={cat.id} value={cat.id.toString()}>
                       {cat.name}
                     </SelectItem>
@@ -704,21 +1212,62 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
               </Select>
             </div>
 
+            {form.status === "scheduled" && (
+              <div>
+                <Label className="text-xs">
+                  {t("Publish Date", "प्रकाशन मिति")}
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={form.scheduledAt}
+                  onChange={e =>
+                    setForm(f => ({ ...f, scheduledAt: e.target.value }))
+                  }
+                  className="mt-1 text-sm"
+                />
+              </div>
+            )}
+
             <div className="space-y-2 pt-1">
               {[
-                { key: "isBreaking", en: "Breaking News", ne: "ब्रेकिङ न्युज", icon: Zap },
-                { key: "isFeatured", en: "Featured Article", ne: "फिचर्ड लेख", icon: Star },
-                { key: "isSponsored", en: "Sponsored", ne: "प्रायोजित", icon: BookOpen },
-                { key: "generateSummary", en: "Generate AI Summary", ne: "AI सारांश बनाउनुहोस्", icon: Sparkles },
-              ].map((toggle) => (
-                <div key={toggle.key} className="flex items-center justify-between">
+                {
+                  key: "isBreaking",
+                  en: "Breaking News",
+                  ne: "ब्रेकिङ न्युज",
+                  icon: Zap,
+                },
+                {
+                  key: "isFeatured",
+                  en: "Featured Article",
+                  ne: "फिचर्ड लेख",
+                  icon: Star,
+                },
+                {
+                  key: "isSponsored",
+                  en: "Sponsored",
+                  ne: "प्रायोजित",
+                  icon: BookOpen,
+                },
+                {
+                  key: "generateSummary",
+                  en: "Generate AI Summary",
+                  ne: "AI सारांश बनाउनुहोस्",
+                  icon: Sparkles,
+                },
+              ].map(toggle => (
+                <div
+                  key={toggle.key}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-1.5 text-sm">
                     <toggle.icon className="w-3.5 h-3.5 text-muted-foreground" />
                     <span>{t(toggle.en, toggle.ne)}</span>
                   </div>
                   <Switch
                     checked={form[toggle.key as keyof typeof form] as boolean}
-                    onCheckedChange={(v) => setForm((f) => ({ ...f, [toggle.key]: v }))}
+                    onCheckedChange={v =>
+                      setForm(f => ({ ...f, [toggle.key]: v }))
+                    }
                   />
                 </div>
               ))}
@@ -727,15 +1276,23 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
 
           {/* Cover image */}
           <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-            <h3 className="font-semibold text-sm">{t("Cover Image", "कभर तस्बिर")}</h3>
+            <h3 className="font-semibold text-sm">
+              {t("Cover Image", "कभर तस्बिर")}
+            </h3>
             {form.coverImage && (
-              <img src={form.coverImage} alt="Cover" className="w-full aspect-video object-cover rounded-lg" />
+              <img
+                src={form.coverImage}
+                alt="Cover"
+                className="w-full aspect-video object-cover rounded-lg"
+              />
             )}
             <div>
               <Label className="text-xs">{t("Image URL", "तस्बिर URL")}</Label>
               <Input
                 value={form.coverImage}
-                onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))}
+                onChange={e =>
+                  setForm(f => ({ ...f, coverImage: e.target.value }))
+                }
                 placeholder="https://..."
                 className="mt-1 text-sm"
               />
@@ -771,12 +1328,50 @@ function ArticleEditor({ articleId, onBack }: { articleId?: number; onBack: () =
             {isSubmitting
               ? t("Saving...", "सेभ गर्दै...")
               : articleId
-              ? t("Update Article", "लेख अपडेट गर्नुहोस्")
-              : t("Publish Article", "लेख प्रकाशन गर्नुहोस्")}
+                ? t("Update Article", "लेख अपडेट गर्नुहोस्")
+                : t("Publish Article", "लेख प्रकाशन गर्नुहोस्")}
           </Button>
         </div>
       </div>
     </form>
+  );
+}
+
+function ArticlePreview({
+  title,
+  excerpt,
+  summary,
+  content,
+  nepali = false,
+}: {
+  title: string;
+  excerpt?: string;
+  summary?: string;
+  content: string;
+  nepali?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-border bg-card p-5 space-y-4 ${nepali ? "font-nepali" : ""}`}
+    >
+      <div>
+        <h1 className="text-2xl font-bold leading-tight">
+          {title || "Untitled article"}
+        </h1>
+        {excerpt && <p className="mt-2 text-muted-foreground">{excerpt}</p>}
+      </div>
+      {summary && (
+        <div className="rounded-lg bg-muted/60 border border-border p-3 text-sm">
+          {summary}
+        </div>
+      )}
+      <div
+        className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{
+          __html: content || "<p>No content yet.</p>",
+        }}
+      />
+    </div>
   );
 }
 
@@ -787,21 +1382,51 @@ function AdminCategories() {
   const { data, isLoading } = trpc.categories.list.useQuery();
   const [editId, setEditId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
-  const [form, setForm] = useState({ name: "", nameNe: "", slug: "", description: "", color: "#dc2626", sortOrder: 0 });
+  const [form, setForm] = useState({
+    name: "",
+    nameNe: "",
+    slug: "",
+    description: "",
+    color: "#dc2626",
+    sortOrder: 0,
+  });
 
   const create = trpc.categories.create.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); setShowNew(false); setForm({ name: "", nameNe: "", slug: "", description: "", color: "#dc2626", sortOrder: 0 }); toast.success(t("Category created!", "श्रेणी सिर्जना गरियो!")); },
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      setShowNew(false);
+      setForm({
+        name: "",
+        nameNe: "",
+        slug: "",
+        description: "",
+        color: "#dc2626",
+        sortOrder: 0,
+      });
+      toast.success(t("Category created!", "श्रेणी सिर्जना गरियो!"));
+    },
   });
   const update = trpc.categories.update.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); setEditId(null); toast.success(t("Category updated!", "श्रेणी अपडेट गरियो!")); },
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      setEditId(null);
+      toast.success(t("Category updated!", "श्रेणी अपडेट गरियो!"));
+    },
   });
   const del = trpc.categories.delete.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); toast.success(t("Category deleted", "श्रेणी मेटाइयो")); },
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      toast.success(t("Category deleted", "श्रेणी मेटाइयो"));
+    },
   });
 
   return (
     <div className="space-y-4">
-      <Button size="sm" className="bg-news-red text-white gap-1" onClick={() => setShowNew(true)}>
+      <Button
+        size="sm"
+        className="bg-news-red text-white gap-1"
+        onClick={() => setShowNew(true)}
+      >
         <Plus className="w-3.5 h-3.5" />
         {t("New Category", "नयाँ श्रेणी")}
       </Button>
@@ -810,60 +1435,153 @@ function AdminCategories() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 font-semibold">{t("Name", "नाम")}</th>
-              <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Nepali", "नेपाली")}</th>
-              <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("Slug", "स्लग")}</th>
-              <th className="text-right px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
+              <th className="text-left px-4 py-3 font-semibold">
+                {t("Name", "नाम")}
+              </th>
+              <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">
+                {t("Nepali", "नेपाली")}
+              </th>
+              <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
+                {t("Slug", "स्लग")}
+              </th>
+              <th className="text-right px-4 py-3 font-semibold">
+                {t("Actions", "कार्यहरू")}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("Loading...", "लोड गर्दै...")}</td></tr>
-            ) : (data ?? []).map((cat) => (
-              <tr key={cat.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color ?? "#dc2626" }} />
-                    <span className="font-medium">{cat.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 hidden sm:table-cell font-nepali text-muted-foreground">{cat.nameNe ?? "—"}</td>
-                <td className="px-4 py-3 hidden md:table-cell text-muted-foreground font-mono text-xs">{cat.slug}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 justify-end">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditId(cat.id)}>
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => del.mutate({ id: cat.id })}>
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
+                  {t("Loading...", "लोड गर्दै...")}
                 </td>
               </tr>
-            ))}
+            ) : (
+              (data ?? []).map(cat => (
+                <tr key={cat.id} className="hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: cat.color ?? "#dc2626" }}
+                      />
+                      <span className="font-medium">{cat.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell font-nepali text-muted-foreground">
+                    {cat.nameNe ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground font-mono text-xs">
+                    {cat.slug}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        onClick={() => setEditId(cat.id)}
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-destructive"
+                        onClick={() => del.mutate({ id: cat.id })}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* New/Edit dialog */}
-      <Dialog open={showNew || editId !== null} onOpenChange={() => { setShowNew(false); setEditId(null); }}>
+      <Dialog
+        open={showNew || editId !== null}
+        onOpenChange={() => {
+          setShowNew(false);
+          setEditId(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editId ? t("Edit Category", "श्रेणी सम्पादन") : t("New Category", "नयाँ श्रेणी")}</DialogTitle>
+            <DialogTitle>
+              {editId
+                ? t("Edit Category", "श्रेणी सम्पादन")
+                : t("New Category", "नयाँ श्रेणी")}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <div><Label>{t("Name (English)", "नाम (अंग्रेजी)")}</Label><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} className="mt-1" /></div>
-            <div><Label className="font-nepali">{t("Name (Nepali)", "नाम (नेपाली)")}</Label><Input value={form.nameNe} onChange={(e) => setForm((f) => ({ ...f, nameNe: e.target.value }))} className="mt-1 font-nepali" /></div>
-            <div><Label>{t("Slug", "स्लग")}</Label><Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="mt-1 font-mono text-sm" /></div>
-            <div><Label>{t("Color", "रंग")}</Label><Input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="mt-1 h-10 w-full" /></div>
+            <div>
+              <Label>{t("Name (English)", "नाम (अंग्रेजी)")}</Label>
+              <Input
+                value={form.name}
+                onChange={e =>
+                  setForm(f => ({
+                    ...f,
+                    name: e.target.value,
+                    slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                  }))
+                }
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="font-nepali">
+                {t("Name (Nepali)", "नाम (नेपाली)")}
+              </Label>
+              <Input
+                value={form.nameNe}
+                onChange={e => setForm(f => ({ ...f, nameNe: e.target.value }))}
+                className="mt-1 font-nepali"
+              />
+            </div>
+            <div>
+              <Label>{t("Slug", "स्लग")}</Label>
+              <Input
+                value={form.slug}
+                onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+                className="mt-1 font-mono text-sm"
+              />
+            </div>
+            <div>
+              <Label>{t("Color", "रंग")}</Label>
+              <Input
+                type="color"
+                value={form.color}
+                onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                className="mt-1 h-10 w-full"
+              />
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowNew(false); setEditId(null); }}>{t("Cancel", "रद्द")}</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNew(false);
+                setEditId(null);
+              }}
+            >
+              {t("Cancel", "रद्द")}
+            </Button>
             <Button
               className="bg-news-red text-white"
               onClick={() => {
                 if (editId) {
-                  update.mutate({ id: editId, ...form, sortOrder: Number(form.sortOrder) });
+                  update.mutate({
+                    id: editId,
+                    ...form,
+                    sortOrder: Number(form.sortOrder),
+                  });
                 } else {
                   create.mutate({ ...form, sortOrder: Number(form.sortOrder) });
                 }
@@ -878,32 +1596,169 @@ function AdminCategories() {
   );
 }
 
+// ─── Media Library ──────────────────────────────────────────────────────────
+function AdminMediaLibrary({ onEdit }: { onEdit: (id: number) => void }) {
+  const { t } = useLanguage();
+  const { data, isLoading } = trpc.articles.adminList.useQuery({
+    limit: 100,
+    offset: 0,
+  });
+  const mediaItems = (data?.articles ?? []).filter(
+    item => item.article.coverImage
+  );
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="aspect-video rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-card border border-border rounded-xl p-4">
+        <h2 className="font-bold">{t("Media Library", "मिडिया लाइब्रेरी")}</h2>
+        <p className="text-sm text-muted-foreground">
+          {t(
+            "Images uploaded/linked in articles appear here.",
+            "लेखहरूमा अपलोड वा लिंक गरिएका तस्बिरहरू यहाँ देखिन्छन्।"
+          )}
+        </p>
+      </div>
+      {mediaItems.length === 0 ? (
+        <div className="text-center text-muted-foreground py-12 border border-dashed rounded-xl">
+          {t("No media yet.", "अहिलेसम्म मिडिया छैन।")}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {mediaItems.map(item => (
+            <button
+              key={item.article.id}
+              onClick={() => onEdit(item.article.id)}
+              className="group overflow-hidden rounded-xl border border-border bg-card text-left"
+            >
+              <img
+                src={item.article.coverImage ?? ""}
+                alt={item.article.title}
+                className="aspect-video w-full object-cover transition-transform group-hover:scale-105"
+              />
+              <div className="p-3">
+                <div className="line-clamp-2 text-sm font-medium">
+                  {item.article.title}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {item.category?.name ?? t("Uncategorized", "श्रेणीविहीन")}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Site Settings ──────────────────────────────────────────────────────────
+function AdminSettings() {
+  const { t } = useLanguage();
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="font-bold">{t("Site Settings", "साइट सेटिङहरू")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t(
+            "Core CMS settings placeholder. Branding, ad slots, SEO defaults and homepage layout controls can be connected here next.",
+            "मुख्य CMS सेटिङहरूका लागि स्थान। ब्रान्डिङ, विज्ञापन, SEO र होमपेज लेआउट नियन्त्रणहरू यहाँ जडान गर्न सकिन्छ।"
+          )}
+        </p>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="font-semibold">
+          {t("Production checklist", "प्रोडक्सन चेकलिस्ट")}
+        </h3>
+        <ul className="mt-3 space-y-2 text-sm text-muted-foreground list-disc pl-5">
+          <li>
+            {t(
+              "Admin login uses Railway environment variables.",
+              "प्रशासक लगइन Railway environment variables प्रयोग गर्छ।"
+            )}
+          </li>
+          <li>
+            {t(
+              "Categories are synced from the database.",
+              "श्रेणीहरू डेटाबेसबाट सिंक हुन्छन्।"
+            )}
+          </li>
+          <li>
+            {t(
+              "Nepali content falls back to English when missing.",
+              "नेपाली सामग्री नभए अंग्रेजीमा फलब्याक हुन्छ।"
+            )}
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 // ─── Comments ────────────────────────────────────────────────────────────────
 function AdminComments() {
   const { t } = useLanguage();
   const utils = trpc.useUtils();
-  const { data, isLoading } = trpc.comments.adminList.useQuery({ limit: 20, offset: 0 });
-  const approve = trpc.comments.approve.useMutation({ onSuccess: () => utils.comments.adminList.invalidate() });
-  const reject = trpc.comments.reject.useMutation({ onSuccess: () => utils.comments.adminList.invalidate() });
-  const del = trpc.comments.delete.useMutation({ onSuccess: () => { utils.comments.adminList.invalidate(); toast.success(t("Comment deleted", "टिप्पणी मेटाइयो")); } });
+  const { data, isLoading } = trpc.comments.adminList.useQuery({
+    limit: 20,
+    offset: 0,
+  });
+  const approve = trpc.comments.approve.useMutation({
+    onSuccess: () => utils.comments.adminList.invalidate(),
+  });
+  const reject = trpc.comments.reject.useMutation({
+    onSuccess: () => utils.comments.adminList.invalidate(),
+  });
+  const del = trpc.comments.delete.useMutation({
+    onSuccess: () => {
+      utils.comments.adminList.invalidate();
+      toast.success(t("Comment deleted", "टिप्पणी मेटाइयो"));
+    },
+  });
 
   const comments = data?.comments ?? [];
 
   return (
     <div className="space-y-3">
       {isLoading ? (
-        Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)
+        Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-lg" />
+        ))
       ) : comments.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">{t("No comments yet", "अहिलेसम्म कुनै टिप्पणी छैन")}</div>
+        <div className="text-center py-12 text-muted-foreground">
+          {t("No comments yet", "अहिलेसम्म कुनै टिप्पणी छैन")}
+        </div>
       ) : (
-        comments.map((item) => (
-          <div key={item.comment.id} className="bg-card border border-border rounded-xl p-4">
+        comments.map(item => (
+          <div
+            key={item.comment.id}
+            className="bg-card border border-border rounded-xl p-4"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-semibold text-sm">{item.user?.name ?? item.comment.guestName ?? t("Anonymous", "अनाम")}</span>
+                  <span className="font-semibold text-sm">
+                    {item.user?.name ??
+                      item.comment.guestName ??
+                      t("Anonymous", "अनाम")}
+                  </span>
                   <Badge
-                    variant={item.comment.status === "approved" ? "default" : item.comment.status === "rejected" ? "destructive" : "secondary"}
+                    variant={
+                      item.comment.status === "approved"
+                        ? "default"
+                        : item.comment.status === "rejected"
+                          ? "destructive"
+                          : "secondary"
+                    }
                     className="text-xs"
                   >
                     {item.comment.status}
@@ -914,23 +1769,43 @@ function AdminComments() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{item.comment.content}</p>
+                <p className="text-sm text-muted-foreground">
+                  {item.comment.content}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {format(new Date(item.comment.createdAt), "MMM d, yyyy HH:mm")}
+                  {format(
+                    new Date(item.comment.createdAt),
+                    "MMM d, yyyy HH:mm"
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {item.comment.status !== "approved" && (
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600" onClick={() => approve.mutate({ id: item.comment.id })}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-green-600"
+                    onClick={() => approve.mutate({ id: item.comment.id })}
+                  >
                     <Check className="w-3.5 h-3.5" />
                   </Button>
                 )}
                 {item.comment.status !== "rejected" && (
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-orange-500" onClick={() => reject.mutate({ id: item.comment.id })}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-orange-500"
+                    onClick={() => reject.mutate({ id: item.comment.id })}
+                  >
                     <X className="w-3.5 h-3.5" />
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => del.mutate({ id: item.comment.id })}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-destructive"
+                  onClick={() => del.mutate({ id: item.comment.id })}
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -947,45 +1822,81 @@ function AdminUsers() {
   const { t } = useLanguage();
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.admin.users.useQuery();
-  const promote = trpc.admin.promoteUser.useMutation({ onSuccess: () => { utils.admin.users.invalidate(); toast.success(t("User role updated", "प्रयोगकर्ता भूमिका अपडेट गरियो")); } });
+  const promote = trpc.admin.promoteUser.useMutation({
+    onSuccess: () => {
+      utils.admin.users.invalidate();
+      toast.success(t("User role updated", "प्रयोगकर्ता भूमिका अपडेट गरियो"));
+    },
+  });
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-muted/50 border-b border-border">
           <tr>
-            <th className="text-left px-4 py-3 font-semibold">{t("Name", "नाम")}</th>
-            <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Email", "इमेल")}</th>
-            <th className="text-left px-4 py-3 font-semibold">{t("Role", "भूमिका")}</th>
-            <th className="text-right px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
+            <th className="text-left px-4 py-3 font-semibold">
+              {t("Name", "नाम")}
+            </th>
+            <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">
+              {t("Email", "इमेल")}
+            </th>
+            <th className="text-left px-4 py-3 font-semibold">
+              {t("Role", "भूमिका")}
+            </th>
+            <th className="text-right px-4 py-3 font-semibold">
+              {t("Actions", "कार्यहरू")}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {isLoading ? (
-            <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("Loading...", "लोड गर्दै...")}</td></tr>
-          ) : (data ?? []).map((u) => (
-            <tr key={u.id} className="hover:bg-muted/30">
-              <td className="px-4 py-3 font-medium">{u.name ?? "—"}</td>
-              <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground text-xs">{u.email ?? "—"}</td>
-              <td className="px-4 py-3">
-                <Badge variant={u.role === "admin" ? "default" : "secondary"} className={u.role === "admin" ? "bg-news-red text-white" : ""}>
-                  {u.role}
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs h-7"
-                    onClick={() => promote.mutate({ userId: u.id, role: u.role === "admin" ? "user" : "admin" })}
-                  >
-                    {u.role === "admin" ? t("Demote", "डिमोट") : t("Make Admin", "एडमिन बनाउनुहोस्")}
-                  </Button>
-                </div>
+            <tr>
+              <td
+                colSpan={4}
+                className="px-4 py-8 text-center text-muted-foreground"
+              >
+                {t("Loading...", "लोड गर्दै...")}
               </td>
             </tr>
-          ))}
+          ) : (
+            (data ?? []).map(u => (
+              <tr key={u.id} className="hover:bg-muted/30">
+                <td className="px-4 py-3 font-medium">{u.name ?? "—"}</td>
+                <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground text-xs">
+                  {u.email ?? "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge
+                    variant={u.role === "admin" ? "default" : "secondary"}
+                    className={
+                      u.role === "admin" ? "bg-news-red text-white" : ""
+                    }
+                  >
+                    {u.role}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() =>
+                        promote.mutate({
+                          userId: u.id,
+                          role: u.role === "admin" ? "user" : "admin",
+                        })
+                      }
+                    >
+                      {u.role === "admin"
+                        ? t("Demote", "डिमोट")
+                        : t("Make Admin", "एडमिन बनाउनुहोस्")}
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
@@ -1001,30 +1912,49 @@ function AdminNewsletter() {
     <div className="space-y-4">
       <div className="bg-card border border-border rounded-xl p-4">
         <div className="text-2xl font-bold">{data?.length ?? 0}</div>
-        <div className="text-sm text-muted-foreground">{t("Active Subscribers", "सक्रिय सदस्यहरू")}</div>
+        <div className="text-sm text-muted-foreground">
+          {t("Active Subscribers", "सक्रिय सदस्यहरू")}
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 font-semibold">{t("Email", "इमेल")}</th>
-              <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Name", "नाम")}</th>
-              <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("Date", "मिति")}</th>
+              <th className="text-left px-4 py-3 font-semibold">
+                {t("Email", "इमेल")}
+              </th>
+              <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">
+                {t("Name", "नाम")}
+              </th>
+              <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">
+                {t("Date", "मिति")}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading ? (
-              <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">{t("Loading...", "लोड गर्दै...")}</td></tr>
-            ) : (data ?? []).map((sub) => (
-              <tr key={sub.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">{sub.email}</td>
-                <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{sub.name ?? "—"}</td>
-                <td className="px-4 py-3 hidden md:table-cell text-muted-foreground text-xs">
-                  {format(new Date(sub.createdAt), "MMM d, yyyy")}
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
+                  {t("Loading...", "लोड गर्दै...")}
                 </td>
               </tr>
-            ))}
+            ) : (
+              (data ?? []).map(sub => (
+                <tr key={sub.id} className="hover:bg-muted/30">
+                  <td className="px-4 py-3">{sub.email}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
+                    {sub.name ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground text-xs">
+                    {format(new Date(sub.createdAt), "MMM d, yyyy")}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

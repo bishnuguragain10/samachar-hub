@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
+import { localizedCategory } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,15 +29,15 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const CATEGORIES = [
-  { slug: "politics", en: "Politics", ne: "राजनीति" },
-  { slug: "business", en: "Business", ne: "व्यापार" },
-  { slug: "technology", en: "Technology", ne: "प्रविधि" },
-  { slug: "sports", en: "Sports", ne: "खेलकुद" },
-  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन" },
-  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय" },
-  { slug: "nepal", en: "Nepal", ne: "नेपाल" },
-  { slug: "opinion", en: "Opinion", ne: "विचार" },
+const FALLBACK_CATEGORIES = [
+  { slug: "politics", name: "Politics", nameNe: "राजनीति" },
+  { slug: "business", name: "Business", nameNe: "व्यापार" },
+  { slug: "technology", name: "Technology", nameNe: "प्रविधि" },
+  { slug: "sports", name: "Sports", nameNe: "खेलकुद" },
+  { slug: "entertainment", name: "Entertainment", nameNe: "मनोरञ्जन" },
+  { slug: "international", name: "International", nameNe: "अन्तर्राष्ट्रिय" },
+  { slug: "nepal", name: "Nepal", nameNe: "नेपाल" },
+  { slug: "opinion", name: "Opinion", nameNe: "विचार" },
 ];
 
 export default function Navbar() {
@@ -49,6 +50,12 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const { data: categoriesData } = trpc.categories.list.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+  });
+  const categories = categoriesData?.length
+    ? categoriesData
+    : FALLBACK_CATEGORIES;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -81,12 +88,15 @@ export default function Navbar() {
           {t("Nepal's Trusted News Source", "नेपालको विश्वसनीय समाचार स्रोत")}
         </span>
         <span className="hidden sm:block">
-          {new Date().toLocaleDateString(language === "ne" ? "ne-NP" : "en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
+          {new Date().toLocaleDateString(
+            language === "ne" ? "ne-NP" : "en-US",
+            {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }
+          )}
         </span>
       </div>
 
@@ -99,22 +109,28 @@ export default function Navbar() {
               <span className="text-white font-bold text-lg">S</span>
             </div>
             <div className="hidden sm:block">
-              <div className="font-bold text-lg leading-tight text-foreground">Samachar Hub</div>
-              <div className="font-nepali text-xs text-muted-foreground leading-tight">समाचार हब</div>
+              <div className="font-bold text-lg leading-tight text-foreground">
+                Samachar Hub
+              </div>
+              <div className="font-nepali text-xs text-muted-foreground leading-tight">
+                समाचार हब
+              </div>
             </div>
           </Link>
 
           {/* Desktop category nav */}
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-            {CATEGORIES.slice(0, 6).map((cat) => (
+            {categories.slice(0, 6).map(cat => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                  location === `/category/${cat.slug}` ? "bg-accent text-accent-foreground" : "text-foreground"
+                  location === `/category/${cat.slug}`
+                    ? "bg-accent text-accent-foreground"
+                    : "text-foreground"
                 } ${language === "ne" ? "font-nepali" : ""}`}
               >
-                {t(cat.en, cat.ne)}
+                {localizedCategory(cat, language === "ne").name}
               </Link>
             ))}
             <DropdownMenu>
@@ -124,10 +140,13 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                {CATEGORIES.slice(6).map((cat) => (
+                {categories.slice(6).map(cat => (
                   <DropdownMenuItem key={cat.slug} asChild>
-                    <Link href={`/category/${cat.slug}`} className={language === "ne" ? "font-nepali" : ""}>
-                      {t(cat.en, cat.ne)}
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      className={language === "ne" ? "font-nepali" : ""}
+                    >
+                      {localizedCategory(cat, language === "ne").name}
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -143,11 +162,16 @@ export default function Navbar() {
                 <Input
                   ref={searchRef}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
                   className="w-40 sm:w-56 h-8 text-sm"
                 />
-                <Button type="submit" size="sm" variant="ghost" className="h-8 w-8 p-0">
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                >
                   <Search className="w-4 h-4" />
                 </Button>
                 <Button
@@ -181,7 +205,9 @@ export default function Navbar() {
               title={t("Switch to Nepali", "अंग्रेजीमा जानुहोस्")}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{language === "en" ? "नेपाली" : "EN"}</span>
+              <span className="hidden sm:inline">
+                {language === "en" ? "नेपाली" : "EN"}
+              </span>
             </Button>
 
             {/* Dark mode */}
@@ -192,21 +218,31 @@ export default function Navbar() {
               onClick={toggleTheme}
               aria-label="Toggle theme"
             >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
             </Button>
 
             {/* Auth */}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-full"
+                  >
                     <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                       {user?.name?.[0]?.toUpperCase() ?? "U"}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-3 py-2 text-sm font-medium">{user?.name}</div>
+                  <div className="px-3 py-2 text-sm font-medium">
+                    {user?.name}
+                  </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/bookmarks" className="flex items-center gap-2">
@@ -223,7 +259,10 @@ export default function Navbar() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-destructive">
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="flex items-center gap-2 text-destructive"
+                  >
                     <LogOut className="w-4 h-4" />
                     {t("Sign Out", "साइन आउट")}
                   </DropdownMenuItem>
@@ -248,7 +287,11 @@ export default function Navbar() {
               className="h-8 w-8 p-0 lg:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              {mobileOpen ? (
+                <X className="w-4 h-4" />
+              ) : (
+                <Menu className="w-4 h-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -258,7 +301,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <nav className="container py-3 grid grid-cols-2 gap-1">
-            {CATEGORIES.map((cat) => (
+            {categories.map(cat => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
@@ -267,7 +310,7 @@ export default function Navbar() {
                 }`}
                 onClick={() => setMobileOpen(false)}
               >
-                {t(cat.en, cat.ne)}
+                {localizedCategory(cat, language === "ne").name}
               </Link>
             ))}
           </nav>
