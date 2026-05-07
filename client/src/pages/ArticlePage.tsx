@@ -101,9 +101,10 @@ export default function ArticlePage() {
 
   const { article, category, author } = data;
   const title = isNepali && article.titleNe ? article.titleNe : article.title;
-  const content = isNepali && article.contentNe ? article.contentNe : article.content;
-  const summary = isNepali && article.aiSummaryNe ? article.aiSummaryNe : article.aiSummary;
-  const categoryName = isNepali && category?.nameNe ? category.nameNe : category?.name;
+  const excerpt = isNepali && article.excerptNe ? article.excerptNe : (article.excerpt ?? "");
+  const content = (isNepali && article.contentNe ? article.contentNe : article.content) ?? "";
+  const summary = isNepali && article.aiSummaryNe ? article.aiSummaryNe : (article.aiSummary ?? null);
+  const categoryName = isNepali && category?.nameNe ? category.nameNe : (category?.name ?? "");
   const publishedDate = article.publishedAt ? new Date(article.publishedAt) : new Date(article.createdAt);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -157,20 +158,21 @@ export default function ArticlePage() {
     const prevTitle = document.title;
     document.title = `${article.title} | Samachar Hub`;
     const setMeta = (name: string, content: string, isProperty = false) => {
+      if (!content) return;
       const attr = isProperty ? "property" : "name";
       let el = document.querySelector(`meta[${attr}='${name}']`) as HTMLMetaElement | null;
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("description", article.excerpt ?? article.title);
+    setMeta("description", excerpt || article.title);
     setMeta("og:title", article.title, true);
-    setMeta("og:description", article.excerpt ?? article.title, true);
+    setMeta("og:description", excerpt || article.title, true);
     setMeta("og:image", article.coverImage ?? "", true);
     setMeta("og:type", "article", true);
     setMeta("twitter:title", article.title);
-    setMeta("twitter:description", article.excerpt ?? article.title);
+    setMeta("twitter:description", excerpt || article.title);
     return () => { document.title = prevTitle; };
-  }, [article.title, article.excerpt, article.coverImage]);
+  }, [article.title, excerpt, article.coverImage]);
 
   return (
     <div className="min-h-screen">
@@ -319,10 +321,16 @@ export default function ArticlePage() {
             </div>
 
             {/* Article content */}
-            <div
-              className={`article-content ${isNepali ? "font-nepali" : ""}`}
-              dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br/>") }}
-            />
+            {content ? (
+              <div
+                className={`article-content ${isNepali ? "font-nepali" : ""}`}
+                dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br/>") }}
+              />
+            ) : (
+              <div className="rounded-xl border border-border bg-muted/30 p-6 text-center text-muted-foreground">
+                {t("No content available for this article.", "यस लेखको लागि कुनै सामग्री उपलब्ध छैन।")}
+              </div>
+            )}
 
             {/* YouTube embed */}
             {article.youtubeUrl && (
@@ -332,28 +340,43 @@ export default function ArticlePage() {
                   <span className="font-semibold text-sm">{t("Watch Video", "भिडियो हेर्नुहोस्")}</span>
                 </div>
                 <div className="aspect-video rounded-xl overflow-hidden bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(article.youtubeUrl)}`}
-                    title="YouTube video"
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
+                  {(() => {
+                    const youtubeId = getYouTubeId(article.youtubeUrl ?? "");
+                    if (!youtubeId) {
+                      return (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          {t("Invalid YouTube URL", "अमान्य YouTube URL")}
+                        </div>
+                      );
+                    }
+                    return (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${youtubeId}`}
+                        title="YouTube video"
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             )}
 
             {/* Tags */}
-            {article.tags && (
+            {article.tags && article.tags.trim() && (
               <div className="mt-6 flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted-foreground">{t("Tags:", "ट्यागहरू:")}</span>
-                {article.tags.split(",").map((tag) => (
-                  <Link key={tag.trim()} href={`/search?q=${encodeURIComponent(tag.trim())}`}>
-                    <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-accent">
-                      #{tag.trim()}
-                    </Badge>
-                  </Link>
-                ))}
+                {article.tags.split(",").map((tag) => {
+                  const trimmedTag = tag.trim();
+                  return trimmedTag ? (
+                    <Link key={trimmedTag} href={`/search?q=${encodeURIComponent(trimmedTag)}`}>
+                      <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-accent">
+                        #{trimmedTag}
+                      </Badge>
+                    </Link>
+                  ) : null;
+                })}
               </div>
             )}
 
