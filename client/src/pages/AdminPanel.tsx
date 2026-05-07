@@ -76,7 +76,7 @@ export default function AdminPanel() {
     return <div className="flex items-center justify-center min-h-screen"><Skeleton className="w-48 h-8" /></div>;
   }
 
-return children;
+return null;
 
   const navItems = [
     { id: "dashboard" as AdminTab, icon: LayoutDashboard, en: "Dashboard", ne: "ड्यासबोर्ड" },
