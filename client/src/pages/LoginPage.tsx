@@ -47,7 +47,9 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-3">
-    
+            <Button onClick={handleLogin} className="bg-news-red text-white">
+              {t("Login as Admin", "प्रशासकको रूपमा लगइन गर्नुहोस्")}
+            </Button>
           
             <Link href="/" className="inline-flex items-center justify-center gap-2 text-sm text-primary hover:underline">
               <ArrowLeft className="w-4 h-4" />
