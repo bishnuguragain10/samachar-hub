@@ -33,30 +33,52 @@ import {
 import { formatDistanceToNow, format } from "date-fns";
 
 export default function ArticlePage() {
+  console.log("[ArticlePage] Rendering");
+  
   const { slug } = useParams<{ slug: string }>();
   const { t, isNepali } = useLanguage();
   const { user, isAuthenticated } = useAuth();
 
-  const { data, isLoading, error } = trpc.articles.bySlug.useQuery({ slug: slug ?? "" }, { enabled: !!slug });
-  const { data: relatedData } = trpc.articles.related.useQuery(
-    { articleId: data?.article.id ?? 0, categoryId: data?.article.categoryId ?? null },
-    { enabled: !!data?.article.id }
-  );
-  const { data: commentsData, refetch: refetchComments } = trpc.comments.list.useQuery(
-    { articleId: data?.article.id ?? 0 },
-    { enabled: !!data?.article.id }
-  );
-  const { data: isBookmarkedData, refetch: refetchBookmark } = trpc.bookmarks.check.useQuery(
-    { articleId: data?.article.id ?? 0 },
-    { enabled: !!data?.article.id && isAuthenticated }
+  // All hooks MUST be called unconditionally in the same order every render
+  const { data, isLoading, error } = trpc.articles.bySlug.useQuery(
+    { slug: slug ?? "" },
+    { enabled: !!slug }
   );
 
+  // ALWAYS call these queries in the same order, even when disabled
+  const articleId = data?.article?.id ?? 0;
+  const categoryId = data?.article?.categoryId ?? null;
+
+  const { data: relatedData } = trpc.articles.related.useQuery(
+    { articleId, categoryId },
+    { enabled: articleId > 0 }
+  );
+
+  const { data: commentsData, refetch: refetchComments } = trpc.comments.list.useQuery(
+    { articleId },
+    { enabled: articleId > 0 }
+  );
+
+  const { data: isBookmarkedData, refetch: refetchBookmark } = trpc.bookmarks.check.useQuery(
+    { articleId },
+    { enabled: articleId > 0 && isAuthenticated }
+  );
+
+  // Mutations - always call in same order
   const addBookmark = trpc.bookmarks.add.useMutation({
-    onSuccess: () => { refetchBookmark(); toast.success(t("Bookmarked!", "बुकमार्क गरियो!")); },
+    onSuccess: () => { 
+      refetchBookmark(); 
+      toast.success(t("Bookmarked!", "बुकमार्क गरियो!")); 
+    },
   });
+
   const removeBookmark = trpc.bookmarks.remove.useMutation({
-    onSuccess: () => { refetchBookmark(); toast.success(t("Bookmark removed", "बुकमार्क हटाइयो")); },
+    onSuccess: () => { 
+      refetchBookmark(); 
+      toast.success(t("Bookmark removed", "बुकमार्क हटाइयो")); 
+    },
   });
+
   const addComment = trpc.comments.create.useMutation({
     onSuccess: () => {
       refetchComments();
@@ -66,10 +88,60 @@ export default function ArticlePage() {
     onError: (err) => toast.error(err.message),
   });
 
+  // All state - always call in same order
   const [commentText, setCommentText] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [showSummary, setShowSummary] = useState(false);
+
+  console.log("[ArticlePage] Data loaded:", !!data, "isLoading:", isLoading, "articleId:", articleId);
+
+  // Helper functions - MUST be defined before any early returns
+  const getYouTubeId = (url: string | null | undefined) => {
+    if (!url || typeof url !== "string") return undefined;
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    return match?.[1];
+  };
+
+  const handleShare = (platform: string) => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const shareTitle = encodeURIComponent(data?.article?.title ?? "");
+    const urls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${shareTitle}&url=${encodeURIComponent(shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${shareTitle}%20${encodeURIComponent(shareUrl)}`,
+    };
+    if (platform === "copy") {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success(t("Link copied!", "लिङ्क कपी गरियो!"));
+      return;
+    }
+    window.open(urls[platform], "_blank", "width=600,height=400");
+  };
+
+  const handleBookmark = () => {
+    if (!data?.article) return;
+    if (!isAuthenticated) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+    if (isBookmarkedData) {
+      removeBookmark.mutate({ articleId: data.article.id });
+    } else {
+      addBookmark.mutate({ articleId: data.article.id });
+    }
+  };
+
+  const handleComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data?.article || !commentText.trim()) return;
+    addComment.mutate({
+      articleId: data.article.id,
+      content: commentText,
+      guestName: !isAuthenticated ? guestName : undefined,
+      guestEmail: !isAuthenticated ? guestEmail : undefined,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -99,6 +171,21 @@ export default function ArticlePage() {
     );
   }
 
+  if (!data?.article) {
+    console.error("[ArticlePage] ERROR: article data missing after loading completed");
+    return (
+      <div className="container py-16 text-center">
+        <h1 className="text-2xl font-bold mb-2">{t("Article not found", "लेख फेला परेन")}</h1>
+        <Link href="/">
+          <Button variant="outline" className="mt-4 gap-2">
+            <ChevronLeft className="w-4 h-4" />
+            {t("Back to Home", "गृहपृष्ठमा फर्कनुहोस्")}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   const { article, category, author } = data;
   const title = isNepali && article.titleNe ? article.titleNe : article.title;
   const excerpt = isNepali && article.excerptNe ? article.excerptNe : (article.excerpt ?? "");
@@ -108,50 +195,10 @@ export default function ArticlePage() {
   const publishedDate = article.publishedAt ? new Date(article.publishedAt) : new Date(article.createdAt);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareTitle = encodeURIComponent(article.title);
+  const shareTitle = encodeURIComponent(article.title ?? "");
 
-  const handleShare = (platform: string) => {
-    const urls: Record<string, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${shareTitle}&url=${encodeURIComponent(shareUrl)}`,
-      whatsapp: `https://wa.me/?text=${shareTitle}%20${encodeURIComponent(shareUrl)}`,
-    };
-    if (platform === "copy") {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success(t("Link copied!", "लिङ्क कपी गरियो!"));
-      return;
-    }
-    window.open(urls[platform], "_blank", "width=600,height=400");
-  };
-
-  const handleBookmark = () => {
-    if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
-      return;
-    }
-    if (isBookmarkedData) {
-      removeBookmark.mutate({ articleId: article.id });
-    } else {
-      addBookmark.mutate({ articleId: article.id });
-    }
-  };
-
-  const handleComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    addComment.mutate({
-      articleId: article.id,
-      content: commentText,
-      guestName: !isAuthenticated ? guestName : undefined,
-      guestEmail: !isAuthenticated ? guestEmail : undefined,
-    });
-  };
-
-  // Extract YouTube ID
-  const getYouTubeId = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-    return match?.[1];
-  };
+  // Safely extract YouTube ID
+  const youtubeId = article.youtubeUrl ? getYouTubeId(article.youtubeUrl) : null;
 
   // Dynamic SEO meta tags
   useEffect(() => {
@@ -333,35 +380,23 @@ export default function ArticlePage() {
             )}
 
             {/* YouTube embed */}
-            {article.youtubeUrl && (
+            {youtubeId ? (
               <div className="mt-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Youtube className="w-5 h-5 text-red-600" />
                   <span className="font-semibold text-sm">{t("Watch Video", "भिडियो हेर्नुहोस्")}</span>
                 </div>
                 <div className="aspect-video rounded-xl overflow-hidden bg-black">
-                  {(() => {
-                    const youtubeId = getYouTubeId(article.youtubeUrl ?? "");
-                    if (!youtubeId) {
-                      return (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          {t("Invalid YouTube URL", "अमान्य YouTube URL")}
-                        </div>
-                      );
-                    }
-                    return (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${youtubeId}`}
-                        title="YouTube video"
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    );
-                  })()}
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                    title="YouTube video"
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Tags */}
             {article.tags && article.tags.trim() && (
@@ -432,31 +467,34 @@ export default function ArticlePage() {
 
               {/* Comments list */}
               <div className="space-y-4">
-                {(commentsData ?? []).length === 0 ? (
+                {!commentsData || commentsData.length === 0 ? (
                   <p className={`text-muted-foreground text-sm ${isNepali ? "font-nepali" : ""}`}>
                     {t("No comments yet. Be the first to comment!", "अहिलेसम्म कुनै टिप्पणी छैन। पहिलो टिप्पणी गर्नुहोस्!")}
                   </p>
                 ) : (
-                  commentsData?.map((item) => (
-                    <div key={item.comment.id} className="flex gap-3">
-                      <Avatar className="w-8 h-8 shrink-0">
-                        <AvatarFallback className="text-xs bg-muted">
-                          {(item.user?.name ?? item.comment.guestName ?? "?")[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 bg-muted/50 rounded-xl p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-sm">
-                            {item.user?.name ?? item.comment.guestName ?? t("Anonymous", "अनाम")}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(item.comment.createdAt), { addSuffix: true })}
-                          </span>
+                  commentsData.map((item) => {
+                    if (!item?.comment) return null;
+                    return (
+                      <div key={item.comment.id} className="flex gap-3">
+                        <Avatar className="w-8 h-8 shrink-0">
+                          <AvatarFallback className="text-xs bg-muted">
+                            {(item.user?.name ?? item.comment.guestName ?? "?")[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 bg-muted/50 rounded-xl p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-sm">
+                              {item.user?.name ?? item.comment.guestName ?? t("Anonymous", "अनाम")}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(item.comment.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className={`text-sm ${isNepali ? "font-nepali" : ""}`}>{item.comment.content}</p>
                         </div>
-                        <p className={`text-sm ${isNepali ? "font-nepali" : ""}`}>{item.comment.content}</p>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -467,18 +505,19 @@ export default function ArticlePage() {
             <AdSlot type="sidebar" />
 
             {/* Related articles */}
-            {(relatedData ?? []).length > 0 && (
+            {relatedData && relatedData.length > 0 ? (
               <div className="bg-card border border-border rounded-xl p-4">
                 <h3 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
                   {t("Related Articles", "सम्बन्धित लेखहरू")}
                 </h3>
                 <div className="space-y-3">
-                  {relatedData?.map((item) => (
-                    <NewsCard key={item.article.id} data={item} variant="horizontal" />
-                  ))}
+                  {relatedData.map((item) => {
+                    if (!item?.article) return null;
+                    return <NewsCard key={item.article.id} data={item} variant="horizontal" />;
+                  })}
                 </div>
               </div>
-            )}
+            ) : null}
 
             <AdSlot type="sidebar" />
           </aside>
