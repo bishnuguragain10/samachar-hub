@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -68,32 +67,32 @@ type AdminTab = "dashboard" | "articles" | "new-article" | "edit-article" | "cat
 export default function AdminPanel() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const { t } = useLanguage();
+  const [, setLocation] = useLocation();
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const [editArticleId, setEditArticleId] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen"><Skeleton className="w-48 h-8" /></div>;
-  }
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      setLocation("/admin/login", { replace: true });
+    }
+  }, [isAuthenticated, loading, setLocation]);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
-          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
-          <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
-        </div>
-      </div>
-    );
+  if (loading || !isAuthenticated) {
+    return <div className="flex items-center justify-center min-h-screen"><Skeleton className="w-48 h-8" /></div>;
   }
 
   if (user?.role !== "admin") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-4 py-12">
+        <div className="max-w-md text-center">
           <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
-          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
+          <p className="text-muted-foreground mb-4">
+            {t(
+              "Your current account is not an admin. Sign in below with the admin credentials to continue.",
+              "तपाईंको हालको खाता प्रशासक होइन। जारी राख्न तल प्रशासक विवरणबाट साइन इन गर्नुहोस्।"
+            )}
+          </p>
           <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
         </div>
       </div>

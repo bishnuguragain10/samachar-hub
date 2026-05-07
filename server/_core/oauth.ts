@@ -14,7 +14,48 @@ function getQueryParam(req: Request, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+
+async function ensureDefaultAdminAccount() {
+  const adminEmail = ENV.adminEmail;
+  const adminPassword = ENV.adminPassword;
+
+  if (!adminEmail || !adminPassword) {
+    console.warn("[Admin Setup] ADMIN_EMAIL or ADMIN_PASSWORD is not configured; skipping default admin setup");
+    return undefined;
+  }
+
+  const existingUser = await db.getUserByEmail(adminEmail);
+  const shouldWriteConfiguredCredentials = !existingUser || existingUser.role !== "admin" || !existingUser.passwordHash;
+
+  if (!shouldWriteConfiguredCredentials) {
+    return existingUser;
+  }
+
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+  await db.upsertUser({
+    openId: existingUser?.openId ?? ENV.adminOpenId,
+    name: existingUser?.name || "Admin",
+    email: adminEmail,
+    loginMethod: "admin",
+    role: "admin",
+    passwordHash,
+    lastSignedIn: existingUser?.lastSignedIn ?? new Date(),
+  });
+
+  const adminUser = await db.getUserByEmail(adminEmail);
+  if (!adminUser) {
+    throw new Error("Default admin account could not be loaded after setup");
+  }
+
+  console.log("[Admin Setup] Default admin account is ready for:", adminEmail);
+  return adminUser;
+}
+
 export function registerOAuthRoutes(app: Express) {
+  void ensureDefaultAdminAccount().catch(error => {
+    console.error("[Admin Setup] Failed to prepare default admin account:", error);
+  });
+
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -135,56 +176,13 @@ export function registerOAuthRoutes(app: Express) {
 
       console.log("[Admin Login] Email check passed");
 
-      // Get or create admin user
       let user;
       try {
-        user = await db.getUserByEmail(email);
-        console.log("[Admin Login] User found:", !!user);
+        user = await ensureDefaultAdminAccount();
+        console.log("[Admin Login] Admin user ready:", !!user);
       } catch (error) {
-        console.error("[Admin Login] DB error getting user:", error);
+        console.error("[Admin Login] DB error preparing admin user:", error);
         return res.status(500).json({ error: "Internal server error" });
-      }
-
-      if (!user) {
-        // Create admin user with hashed password
-        try {
-          const passwordHash = await bcrypt.hash(password, 10);
-          console.log("[Admin Login] Password hash created");
-          await db.upsertUser({
-            openId: `admin-${email}`,
-            name: "Admin",
-            email,
-            loginMethod: "admin",
-            role: "admin",
-            passwordHash,
-            lastSignedIn: new Date(),
-          });
-          user = await db.getUserByEmail(email);
-          console.log("[Admin Login] User created:", !!user);
-        } catch (error) {
-          console.error("[Admin Login] DB error creating user:", error);
-          return res.status(500).json({ error: "Internal server error" });
-        }
-      } else if (user.role !== "admin" || !user.passwordHash) {
-        // Upgrade existing user record with admin credentials
-        try {
-          const passwordHash = await bcrypt.hash(password, 10);
-          console.log("[Admin Login] Upgrading user to admin with password hash");
-          await db.upsertUser({
-            openId: user.openId,
-            name: user.name || "Admin",
-            email,
-            loginMethod: "admin",
-            role: "admin",
-            passwordHash,
-            lastSignedIn: new Date(),
-          });
-          user = await db.getUserByEmail(email);
-          console.log("[Admin Login] User upgraded:", !!user);
-        } catch (error) {
-          console.error("[Admin Login] DB error upgrading user:", error);
-          return res.status(500).json({ error: "Internal server error" });
-        }
       }
 
       if (!user || user.role !== "admin") {
@@ -196,18 +194,12 @@ export function registerOAuthRoutes(app: Express) {
       try {
         console.log("[Admin Login] user.passwordHash:", !!user.passwordHash);
         if (!user.passwordHash) {
-          console.log("[Admin Login] No stored admin password hash, writing new hash");
-          const passwordHash = await bcrypt.hash(password, 10);
-          await db.upsertUser({
-            openId: user.openId,
-            name: user.name || "Admin",
-            email,
-            loginMethod: "admin",
-            role: "admin",
-            passwordHash,
-            lastSignedIn: new Date(),
-          });
-          user = await db.getUserByEmail(email);
+          console.log("[Admin Login] No stored admin password hash, writing configured admin hash");
+          user = await ensureDefaultAdminAccount();
+          if (!user?.passwordHash) {
+            console.error("[Admin Login] Failed to reload admin user after writing password hash");
+            return res.status(500).json({ error: "Internal server error" });
+          }
         }
 
         let passwordMatch = false;
@@ -219,8 +211,8 @@ export function registerOAuthRoutes(app: Express) {
           console.log("[Admin Login] Admin password fallback matched configured ADMIN_PASSWORD, refreshing stored hash");
           const passwordHash = await bcrypt.hash(password, 10);
           await db.upsertUser({
-            openId: user!.openId,
-            name: user!.name || "Admin",
+            openId: user.openId,
+            name: user.name || "Admin",
             email,
             loginMethod: "admin",
             role: "admin",
