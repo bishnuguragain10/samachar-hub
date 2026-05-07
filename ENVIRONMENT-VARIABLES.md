@@ -36,6 +36,22 @@ DEV_ADMIN_OPEN_ID = admin-user-123
 - DEV_ADMIN_EMAIL: Your email address
 - DEV_ADMIN_OPEN_ID: Any unique identifier (e.g., "admin-123" or "my-admin-user")
 
+### Admin Login (Production)
+```
+ADMIN_EMAIL = your.admin@example.com
+ADMIN_PASSWORD = your-secret-admin-password
+ADMIN_OPEN_ID = admin-user-123
+```
+**What to put:**
+- ADMIN_EMAIL: The admin email address that can use the hidden login route
+- ADMIN_PASSWORD: A strong secret password for the hidden admin login route
+- ADMIN_OPEN_ID: A unique user identifier for the admin account (optional)
+
+> Note: If the environment variables are not configured, the hidden admin login defaults to:
+> - email: bishnu.guragain.10@gmail.com
+> - password: Ayusha@123
+> - URL: /hidden-admin-access
+
 ### Production Settings
 ```
 NODE_ENV = production

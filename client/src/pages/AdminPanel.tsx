@@ -76,30 +76,29 @@ export default function AdminPanel() {
     return <div className="flex items-center justify-center min-h-screen"><Skeleton className="w-48 h-8" /></div>;
   }
 
-if (!isAuthenticated) {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h2 className="text-xl font-bold mb-4">{t("Admin Access Required", "प्रशासक पहुँच आवश्यक")}</h2>
-        <Button onClick={() => (window.location.href = "/login")} className="bg-news-red text-white">
-          {t("Login", "लगइन")}
-        </Button>
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
+          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
+          <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-if (user?.role !== "admin") {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
-        <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
-        <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">{t("Access Denied", "पहुँच अस्वीकृत")}</h2>
+          <p className="text-muted-foreground mb-4">{t("You need admin privileges.", "तपाईंलाई प्रशासक विशेषाधिकार चाहिन्छ।")}</p>
+          <Link href="/"><Button variant="outline">{t("Go Home", "गृहपृष्ठमा जानुहोस्")}</Button></Link>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   const navItems = [
     { id: "dashboard" as AdminTab, icon: LayoutDashboard, en: "Dashboard", ne: "ड्यासबोर्ड" },

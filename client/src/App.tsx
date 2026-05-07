@@ -14,6 +14,7 @@ import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
 import BookmarksPage from "./pages/BookmarksPage";
 import AdminPanel from "./pages/AdminPanel";
+import HiddenAdminAccessPage from "./pages/HiddenAdminAccessPage";
 import LoginPage from "./pages/LoginPage";
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/search">{() => <SearchWithLayout />}</Route>
       <Route path="/bookmarks">{() => <BookmarksWithLayout />}</Route>
       <Route path="/login">{() => <LoginWithLayout />}</Route>
+      <Route path="/hidden-admin-access">{() => <HiddenAdminAccessPage />}</Route>
       <Route path="/admin">{() => <AdminWithLayout />}</Route>
       <Route path="/admin/:rest*">{() => <AdminWithLayout />}</Route>
       <Route path="/404">{() => <NotFound />}</Route>
