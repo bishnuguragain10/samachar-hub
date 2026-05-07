@@ -200,27 +200,6 @@ export default function ArticlePage() {
   // Safely extract YouTube ID
   const youtubeId = article.youtubeUrl ? getYouTubeId(article.youtubeUrl) : null;
 
-  // Dynamic SEO meta tags
-  useEffect(() => {
-    const prevTitle = document.title;
-    document.title = `${article.title} | Samachar Hub`;
-    const setMeta = (name: string, content: string, isProperty = false) => {
-      if (!content) return;
-      const attr = isProperty ? "property" : "name";
-      let el = document.querySelector(`meta[${attr}='${name}']`) as HTMLMetaElement | null;
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
-      el.setAttribute("content", content);
-    };
-    setMeta("description", excerpt || article.title);
-    setMeta("og:title", article.title, true);
-    setMeta("og:description", excerpt || article.title, true);
-    setMeta("og:image", article.coverImage ?? "", true);
-    setMeta("og:type", "article", true);
-    setMeta("twitter:title", article.title);
-    setMeta("twitter:description", excerpt || article.title);
-    return () => { document.title = prevTitle; };
-  }, [article.title, excerpt, article.coverImage]);
-
   return (
     <div className="min-h-screen">
       <div className="container py-6">
@@ -295,39 +274,6 @@ export default function ArticlePage() {
               </span>
             </div>
 
-            {/* Action bar */}
-            <div className="flex items-center gap-2 mb-6 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={handleBookmark}
-              >
-                {isBookmarkedData ? (
-                  <BookmarkCheck className="w-4 h-4 text-primary" />
-                ) : (
-                  <Bookmark className="w-4 h-4" />
-                )}
-                {isBookmarkedData ? t("Saved", "सेभ गरियो") : t("Save", "सेभ गर्नुहोस्")}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleShare("facebook")}>
-                <Facebook className="w-4 h-4 text-blue-600" />
-                <span className="hidden sm:inline">Facebook</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleShare("twitter")}>
-                <Twitter className="w-4 h-4 text-sky-500" />
-                <span className="hidden sm:inline">Twitter</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleShare("whatsapp")}>
-                <MessageCircle className="w-4 h-4 text-green-500" />
-                <span className="hidden sm:inline">WhatsApp</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => handleShare("copy")}>
-                <LinkIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("Copy Link", "लिङ्क कपी")}</span>
-              </Button>
-            </div>
-
             {/* Cover image */}
             {article.coverImage && (
               <div className="rounded-xl overflow-hidden mb-6">
@@ -336,29 +282,6 @@ export default function ArticlePage() {
                   alt={title}
                   className="w-full object-cover max-h-[500px]"
                 />
-              </div>
-            )}
-
-            {/* AI Summary */}
-            {summary && (
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
-                <button
-                  className="flex items-center gap-2 w-full text-left"
-                  onClick={() => setShowSummary(!showSummary)}
-                >
-                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                  <span className={`font-semibold text-sm text-primary ${isNepali ? "font-nepali" : ""}`}>
-                    {t("AI Summary", "AI सारांश")}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {showSummary ? t("Hide", "लुकाउनुहोस्") : t("Show", "देखाउनुहोस्")}
-                  </span>
-                </button>
-                {showSummary && (
-                  <p className={`mt-3 text-sm text-muted-foreground leading-relaxed ${isNepali ? "font-nepali" : ""}`}>
-                    {summary}
-                  </p>
-                )}
               </div>
             )}
 
@@ -378,147 +301,11 @@ export default function ArticlePage() {
                 {t("No content available for this article.", "यस लेखको लागि कुनै सामग्री उपलब्ध छैन।")}
               </div>
             )}
-
-            {/* YouTube embed */}
-            {youtubeId ? (
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <Youtube className="w-5 h-5 text-red-600" />
-                  <span className="font-semibold text-sm">{t("Watch Video", "भिडियो हेर्नुहोस्")}</span>
-                </div>
-                <div className="aspect-video rounded-xl overflow-hidden bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${youtubeId}`}
-                    title="YouTube video"
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
-                </div>
-              </div>
-            ) : null}
-
-            {/* Tags */}
-            {article.tags && article.tags.trim() && (
-              <div className="mt-6 flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground">{t("Tags:", "ट्यागहरू:")}</span>
-                {article.tags.split(",").map((tag) => {
-                  const trimmedTag = tag.trim();
-                  return trimmedTag ? (
-                    <Link key={trimmedTag} href={`/search?q=${encodeURIComponent(trimmedTag)}`}>
-                      <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-accent">
-                        #{trimmedTag}
-                      </Badge>
-                    </Link>
-                  ) : null;
-                })}
-              </div>
-            )}
-
-            <Separator className="my-8" />
-
-            {/* Comments section */}
-            <div id="comments">
-              <h3 className={`text-lg font-bold mb-6 ${isNepali ? "font-nepali" : ""}`}>
-                {t("Comments", "टिप्पणीहरू")} ({commentsData?.length ?? 0})
-              </h3>
-
-              {/* Comment form */}
-              <form onSubmit={handleComment} className="mb-8 bg-card border border-border rounded-xl p-4">
-                <h4 className={`font-semibold text-sm mb-3 ${isNepali ? "font-nepali" : ""}`}>
-                  {t("Leave a Comment", "टिप्पणी छोड्नुहोस्")}
-                </h4>
-                {!isAuthenticated && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                    <Input
-                      placeholder={t("Your name", "तपाईंको नाम")}
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                    />
-                    <Input
-                      type="email"
-                      placeholder={t("Your email (optional)", "तपाईंको इमेल (वैकल्पिक)")}
-                      value={guestEmail}
-                      onChange={(e) => setGuestEmail(e.target.value)}
-                    />
-                  </div>
-                )}
-                <Textarea
-                  placeholder={t("Write your comment...", "आफ्नो टिप्पणी लेख्नुहोस्...")}
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  rows={3}
-                  className="mb-3"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={addComment.isPending || !commentText.trim()}
-                  className="bg-news-red hover:bg-news-red/90 text-white"
-                >
-                  {addComment.isPending
-                    ? t("Submitting...", "पेश गर्दै...")
-                    : t("Submit Comment", "टिप्पणी पेश गर्नुहोस्")}
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {t("Comments are reviewed before publishing.", "टिप्पणीहरू प्रकाशन गर्नु अघि समीक्षा गरिन्छ।")}
-                </p>
-              </form>
-
-              {/* Comments list */}
-              <div className="space-y-4">
-                {!commentsData || commentsData.length === 0 ? (
-                  <p className={`text-muted-foreground text-sm ${isNepali ? "font-nepali" : ""}`}>
-                    {t("No comments yet. Be the first to comment!", "अहिलेसम्म कुनै टिप्पणी छैन। पहिलो टिप्पणी गर्नुहोस्!")}
-                  </p>
-                ) : (
-                  commentsData.map((item) => {
-                    if (!item?.comment) return null;
-                    return (
-                      <div key={item.comment.id} className="flex gap-3">
-                        <Avatar className="w-8 h-8 shrink-0">
-                          <AvatarFallback className="text-xs bg-muted">
-                            {(item.user?.name ?? item.comment.guestName ?? "?")[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 bg-muted/50 rounded-xl p-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-sm">
-                              {item.user?.name ?? item.comment.guestName ?? t("Anonymous", "अनाम")}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(item.comment.createdAt), { addSuffix: true })}
-                            </span>
-                          </div>
-                          <p className={`text-sm ${isNepali ? "font-nepali" : ""}`}>{item.comment.content}</p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
           </article>
 
           {/* Sidebar */}
           <aside className="space-y-6">
             <AdSlot type="sidebar" />
-
-            {/* Related articles */}
-            {relatedData && relatedData.length > 0 ? (
-              <div className="bg-card border border-border rounded-xl p-4">
-                <h3 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
-                  {t("Related Articles", "सम्बन्धित लेखहरू")}
-                </h3>
-                <div className="space-y-3">
-                  {relatedData.map((item) => {
-                    if (!item?.article) return null;
-                    return <NewsCard key={item.article.id} data={item} variant="horizontal" />;
-                  })}
-                </div>
-              </div>
-            ) : null}
-
             <AdSlot type="sidebar" />
           </aside>
         </div>
