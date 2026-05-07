@@ -18,9 +18,7 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  // In development, use dev login instead of Manus OAuth
-  const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  window.location.href = isDev ? '/api/dev-login' : getLoginUrl();
+  window.location.href = getLoginUrl();
 };
 
 queryClient.getQueryCache().subscribe(event => {
