@@ -1,6 +1,9 @@
+const DEFAULT_DEV_SECRET = "dev-cookie-secret";
+const DEFAULT_DEV_APP_ID = "dev-app";
+
 export const ENV = {
-  appId: process.env.VITE_APP_ID ?? "",
-  cookieSecret: process.env.JWT_SECRET ?? "",
+  appId: process.env.VITE_APP_ID || process.env.APP_ID || DEFAULT_DEV_APP_ID,
+  cookieSecret: process.env.JWT_SECRET || process.env.COOKIE_SECRET || DEFAULT_DEV_SECRET,
   databaseUrl: process.env.DATABASE_URL ?? "",
   oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",

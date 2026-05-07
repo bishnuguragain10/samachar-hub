@@ -156,6 +156,11 @@ class SDKServer {
 
   private getSessionSecret() {
     const secret = ENV.cookieSecret;
+    if (!secret || secret.length === 0) {
+      console.warn(
+        "[Auth] JWT_SECRET is not configured. Using development fallback secret. Set JWT_SECRET in environment for secure sessions."
+      );
+    }
     return new TextEncoder().encode(secret);
   }
 
