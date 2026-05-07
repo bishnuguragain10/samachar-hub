@@ -52,8 +52,8 @@ export function registerOAuthRoutes(app: Express) {
     }
   });
 
-  // Development-only login endpoint (when Manus OAuth is not available)
-  if (process.env.NODE_ENV === "development") {
+  // Development-only login endpoint (when Manus OAuth is not available or DEV_ADMIN_EMAIL is set)
+  if (process.env.NODE_ENV === "development" || ENV.devAdminEmail) {
     app.get("/api/dev-login", async (req: Request, res: Response) => {
       try {
         const queryEmail = getQueryParam(req, "email");
