@@ -28,16 +28,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const CATEGORIES = [
-  { slug: "politics", en: "Politics", ne: "राजनीति" },
-  { slug: "business", en: "Business", ne: "व्यापार" },
-  { slug: "technology", en: "Technology", ne: "प्रविधि" },
-  { slug: "sports", en: "Sports", ne: "खेलकुद" },
-  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन" },
-  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय" },
-  { slug: "nepal", en: "Nepal", ne: "नेपाल" },
-  { slug: "opinion", en: "Opinion", ne: "विचार" },
-];
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -49,6 +39,10 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  
+  // Fetch dynamic categories from backend
+  const { data: categoriesData } = trpc.categories.list.useQuery();
+  const categories = categoriesData ?? [];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -106,33 +100,35 @@ export default function Navbar() {
 
           {/* Desktop category nav */}
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-            {CATEGORIES.slice(0, 6).map((cat) => (
+            {categories.slice(0, 6).map((cat) => (
               <Link
-                key={cat.slug}
+                key={cat.id}
                 href={`/category/${cat.slug}`}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
                   location === `/category/${cat.slug}` ? "bg-accent text-accent-foreground" : "text-foreground"
                 } ${language === "ne" ? "font-nepali" : ""}`}
               >
-                {t(cat.en, cat.ne)}
+                {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
               </Link>
             ))}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1">
-                  {t("More", "थप")} <ChevronDown className="w-3 h-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {CATEGORIES.slice(6).map((cat) => (
-                  <DropdownMenuItem key={cat.slug} asChild>
-                    <Link href={`/category/${cat.slug}`} className={language === "ne" ? "font-nepali" : ""}>
-                      {t(cat.en, cat.ne)}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {categories.length > 6 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    {t("More", "थप")} <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {categories.slice(6).map((cat) => (
+                    <DropdownMenuItem key={cat.id} asChild>
+                      <Link href={`/category/${cat.slug}`} className={language === "ne" ? "font-nepali" : ""}>
+                        {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </nav>
 
           {/* Right controls */}
@@ -258,16 +254,16 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-background">
           <nav className="container py-3 grid grid-cols-2 gap-1">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <Link
-                key={cat.slug}
+                key={cat.id}
                 href={`/category/${cat.slug}`}
                 className={`px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors ${
                   language === "ne" ? "font-nepali" : ""
                 }`}
                 onClick={() => setMobileOpen(false)}
               >
-                {t(cat.en, cat.ne)}
+                {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
               </Link>
             ))}
           </nav>

@@ -83,7 +83,17 @@ export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const homepageSettings = mysqlTable("homepage_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Article = typeof articles.$inferSelect;
 export type InsertArticle = typeof articles.$inferInsert;
+export type HomepageSetting = typeof homepageSettings.$inferSelect;
+export type InsertHomepageSetting = typeof homepageSettings.$inferInsert;

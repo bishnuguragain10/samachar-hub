@@ -4,11 +4,14 @@ import {
   Article,
   InsertArticle,
   InsertUser,
+  HomepageSetting,
+  InsertHomepageSetting,
   articles,
   bookmarks,
   categories,
   comments,
   newsletterSubscribers,
+  homepageSettings,
   users,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -502,4 +505,40 @@ export async function getAllUsers() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+// ─── Homepage Settings ───────────────────────────────────────────────────────
+export async function getHomepageSettings() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(homepageSettings);
+}
+
+export async function getHomepageSetting(key: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(homepageSettings).where(eq(homepageSettings.key, key)).limit(1);
+  return result[0];
+}
+
+export async function updateHomepageSetting(key: string, value: string, description?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(homepageSettings).values({ key, value, description }).onDuplicateKeyUpdate({ 
+    set: { value, description, updatedAt: new Date() } 
+  });
+}
+
+export async function createHomepageSetting(data: InsertHomepageSetting) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(homepageSettings).values(data);
+  const result = await db.select().from(homepageSettings).where(eq(homepageSettings.key, data.key)).limit(1);
+  return result[0];
+}
+
+export async function deleteHomepageSetting(key: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(homepageSettings).where(eq(homepageSettings.key, key));
 }

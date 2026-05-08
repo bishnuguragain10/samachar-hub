@@ -10,14 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, ChevronRight, Flame, Clock, BookOpen } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-const CATEGORIES = [
-  { slug: "politics", en: "Politics", ne: "राजनीति", color: "#dc2626" },
-  { slug: "business", en: "Business", ne: "व्यापार", color: "#2563eb" },
-  { slug: "technology", en: "Technology", ne: "प्रविधि", color: "#7c3aed" },
-  { slug: "sports", en: "Sports", ne: "खेलकुद", color: "#16a34a" },
-  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन", color: "#d97706" },
-  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय", color: "#0891b2" },
-];
 
 function SectionHeader({ en, ne, href }: { en: string; ne: string; href?: string }) {
   const { t, isNepali } = useLanguage();
@@ -73,6 +65,7 @@ export default function Home() {
   });
 
   const { data: categoriesData } = trpc.categories.list.useQuery();
+  const categories = categoriesData ?? [];
 
   const featuredArticle = featuredData?.articles?.[0];
   const latestArticles = latestData?.articles ?? [];
@@ -145,16 +138,16 @@ export default function Home() {
 
         {/* Category quick-nav */}
         <div className="flex gap-2 flex-wrap mb-8">
-          {CATEGORIES.map((cat) => (
-            <Link key={cat.slug} href={`/category/${cat.slug}`}>
+          {categories.map((cat) => (
+            <Link key={cat.id} href={`/category/${cat.slug}`}>
               <Button
                 variant="outline"
                 size="sm"
                 className={`text-xs gap-1.5 ${isNepali ? "font-nepali" : ""}`}
-                style={{ borderColor: cat.color + "40", color: cat.color }}
+                style={{ borderColor: (cat.color ?? "#dc2626") + "40", color: cat.color ?? "#dc2626" }}
               >
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                {t(cat.en, cat.ne)}
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color ?? "#dc2626" }} />
+                {isNepali && cat.nameNe ? cat.nameNe : cat.name}
               </Button>
             </Link>
           ))}
@@ -255,18 +248,16 @@ export default function Home() {
         </div>
 
         {/* Category sections */}
-        {CATEGORIES.slice(0, 3).map((cat) => (
-          <CategorySection key={cat.slug} slug={cat.slug} en={cat.en} ne={cat.ne} />
+        {categories.slice(0, 3).map((cat) => (
+          <CategorySection key={cat.id} category={cat} />
         ))}
       </div>
     </div>
   );
 }
 
-function CategorySection({ slug, en, ne }: { slug: string; en: string; ne: string }) {
+function CategorySection({ category }: { category: any }) {
   const { t, isNepali } = useLanguage();
-  const { data: catData } = trpc.categories.list.useQuery();
-  const category = catData?.find((c) => c.slug === slug);
 
   const { data, isLoading } = trpc.articles.list.useQuery(
     { limit: 4, categoryId: category?.id },
@@ -276,9 +267,11 @@ function CategorySection({ slug, en, ne }: { slug: string; en: string; ne: strin
   const articles = data?.articles ?? [];
   if (!isLoading && articles.length === 0) return null;
 
+  const categoryName = isNepali && category.nameNe ? category.nameNe : category.name;
+
   return (
     <div className="mt-10">
-      <SectionHeader en={en} ne={ne} href={`/category/${slug}`} />
+      <SectionHeader en={categoryName} ne={categoryName} href={`/category/${category.slug}`} />
       <Separator className="mb-4" />
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

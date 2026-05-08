@@ -22,6 +22,11 @@ import {
   getArticleById,
   getArticleBySlug,
   getDashboardStats,
+  getHomepageSettings,
+  getHomepageSetting,
+  createHomepageSetting,
+  updateHomepageSetting,
+  deleteHomepageSetting,
   getNewsletterSubscribers,
   getPublishedArticles,
   getRelatedArticles,
@@ -311,6 +316,42 @@ export const appRouter = router({
       .mutation(({ input }) => subscribeNewsletter(input.email, input.name)),
 
     adminList: adminProcedure.query(() => getNewsletterSubscribers()),
+  }),
+
+  // ─── Homepage Settings ───────────────────────────────────────────────────
+  homepage: router({
+    getSettings: publicProcedure.query(() => getHomepageSettings()),
+    
+    getSetting: publicProcedure
+      .input(z.object({ key: z.string() }))
+      .query(({ input }) => getHomepageSetting(input.key)),
+    
+    // Admin procedures
+    adminList: adminProcedure.query(() => getHomepageSettings()),
+    
+    updateSetting: adminProcedure
+      .input(
+        z.object({
+          key: z.string(),
+          value: z.string(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(({ input }) => updateHomepageSetting(input.key, input.value, input.description)),
+
+    createSetting: adminProcedure
+      .input(
+        z.object({
+          key: z.string(),
+          value: z.string(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(({ input }) => createHomepageSetting(input)),
+
+    deleteSetting: adminProcedure
+      .input(z.object({ key: z.string() }))
+      .mutation(({ input }) => deleteHomepageSetting(input.key)),
   }),
 
   // ─── Admin ─────────────────────────────────────────────────────────

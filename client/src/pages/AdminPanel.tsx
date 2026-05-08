@@ -62,7 +62,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-type AdminTab = "dashboard" | "articles" | "new-article" | "edit-article" | "categories" | "comments" | "users" | "newsletter";
+type AdminTab = "dashboard" | "homepage" | "articles" | "new-article" | "edit-article" | "categories" | "comments" | "users" | "newsletter";
 
 export default function AdminPanel() {
   const { user, isAuthenticated, loading, logout } = useAuth();
@@ -101,6 +101,7 @@ export default function AdminPanel() {
 
   const navItems = [
     { id: "dashboard" as AdminTab, icon: LayoutDashboard, en: "Dashboard", ne: "ड्यासबोर्ड" },
+    { id: "homepage" as AdminTab, icon: BookOpen, en: "Homepage", ne: "गृहपृष्ठ" },
     { id: "articles" as AdminTab, icon: FileText, en: "Articles", ne: "लेखहरू" },
     { id: "categories" as AdminTab, icon: Tag, en: "Categories", ne: "श्रेणीहरू" },
     { id: "comments" as AdminTab, icon: MessageSquare, en: "Comments", ne: "टिप्पणीहरू" },
@@ -188,6 +189,7 @@ export default function AdminPanel() {
 
         <div className="flex-1 p-4 overflow-auto">
           {tab === "dashboard" && <AdminDashboard onNavigate={setTab} />}
+          {tab === "homepage" && <AdminHomepage />}
           {tab === "articles" && <AdminArticles onEdit={handleEditArticle} onNew={() => setTab("new-article")} />}
           {tab === "new-article" && <ArticleEditor onBack={() => setTab("articles")} />}
           {tab === "edit-article" && editArticleId && (
@@ -1024,6 +1026,190 @@ function AdminNewsletter() {
                 </td>
               </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Homepage Settings ─────────────────────────────────────────────────────
+function AdminHomepage() {
+  const { t } = useLanguage();
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+
+  const { data: settings, isLoading, refetch } = trpc.homepage.adminList.useQuery();
+  
+  const createMutation = trpc.homepage.createSetting.useMutation({
+    onSuccess: () => {
+      toast.success(t("Setting created successfully!", "सेटिङ सफलतापूर्वक बनाइयो!"));
+      setNewKey("");
+      setNewValue("");
+      setNewDescription("");
+      refetch();
+    },
+    onError: (err) => toast.error(err.message || t("Failed to create setting", "सेटिङ बनाउन असफल")),
+  });
+
+  const updateMutation = trpc.homepage.updateSetting.useMutation({
+    onSuccess: () => {
+      toast.success(t("Setting updated successfully!", "सेटिङ सफलतापूर्वक अपडेट गरियो!"));
+      refetch();
+    },
+    onError: (err) => toast.error(err.message || t("Failed to update setting", "सेटिङ अपडेट गर्न असफल")),
+  });
+
+  const deleteMutation = trpc.homepage.deleteSetting.useMutation({
+    onSuccess: () => {
+      toast.success(t("Setting deleted successfully!", "सेटिङ सफलतापूर्वक हटाइयो!"));
+      refetch();
+    },
+    onError: (err) => toast.error(err.message || t("Failed to delete setting", "सेटिङ हटाउन असफल")),
+  });
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKey.trim() || !newValue.trim()) return;
+    createMutation.mutate({ key: newKey, value: newValue, description: newDescription });
+  };
+
+  const handleUpdate = (key: string, value: string, description?: string) => {
+    updateMutation.mutate({ key, value, description });
+  };
+
+  const handleDelete = (key: string) => {
+    if (confirm(t("Are you sure you want to delete this setting?", "के तपाईं यो सेटिङ मेट्न निश्चित हुनुहुन्छ?"))) {
+      deleteMutation.mutate({ key });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold mb-2">{t("Homepage Settings", "गृहपृष्ठ सेटिङहरू")}</h2>
+        <p className="text-muted-foreground mb-6">
+          {t(
+            "Manage homepage configuration, featured articles, and section display settings.",
+            "गृहपृष्ठ कन्फिगरेसन, विशेष लेखहरू, र खण्ड प्रदर्शन सेटिङहरू व्यवस्थापन गर्नुहोस्।"
+          )}
+        </p>
+      </div>
+
+      {/* Add new setting */}
+      <div className="bg-card border border-border rounded-xl p-4">
+        <h3 className="text-lg font-semibold mb-4">{t("Add New Setting", "नयाँ सेटिङ थप्नुहोस्")}</h3>
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="key">{t("Setting Key", "सेटिङ कुञ्जी")}</Label>
+              <Input
+                id="key"
+                value={newKey}
+                onChange={(e) => setNewKey(e.target.value)}
+                placeholder={t("e.g., hero_article_id", "जस्तै: hero_article_id")}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="value">{t("Setting Value", "सेटिङ मान")}</Label>
+              <Input
+                id="value"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                placeholder={t("e.g., 123", "जस्तै: १२३")}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">{t("Description", "विवरण")}</Label>
+              <Input
+                id="description"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder={t("e.g., ID of hero featured article", "जस्तै: हिरो विशेष लेखको ID")}
+              />
+            </div>
+          </div>
+          <Button type="submit" disabled={createMutation.isPending} className="bg-news-red text-white">
+            {createMutation.isPending ? t("Creating...", "बनाउँदै...") : t("Add Setting", "सेटिङ थप्नुहोस्")}
+          </Button>
+        </form>
+      </div>
+
+      {/* Existing settings */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 border-b border-border">
+            <tr>
+              <th className="text-left px-4 py-3 font-semibold">{t("Setting Key", "सेटिङ कुञ्जी")}</th>
+              <th className="text-left px-4 py-3 font-semibold">{t("Value", "मान")}</th>
+              <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Description", "विवरण")}</th>
+              <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("Updated", "अपडेट गरियो")}</th>
+              <th className="text-left px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {(settings ?? []).length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                  {t("No settings found. Create your first setting above.", "कुनै सेटिङ फेला परेन। माथि तपाईंको पहिलो सेटिङ बनाउनुहोस्।")}
+                </td>
+              </tr>
+            ) : (
+              (settings ?? []).map((setting) => (
+                <tr key={setting.key} className="hover:bg-muted/30">
+                  <td className="px-4 py-3 font-mono text-xs bg-muted/50 rounded">{setting.key}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{setting.value}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">
+                    {setting.description || "—"}
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-muted-foreground text-xs">
+                    {format(new Date(setting.updatedAt), "MMM d, yyyy HH:mm")}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const newKey = prompt(t("Edit setting key:", "सेटिङ कुञ्जी सम्पादन गर्नुहोस्:"), setting.key);
+                          const newValue = prompt(t("Edit setting value:", "सेटिङ मान सम्पादन गर्नुहोस्:"), setting.value);
+                          const newDescription = prompt(t("Edit description:", "विवरण सम्पादन गर्नुहोस्:"), setting.description || "");
+                          if (newKey && newValue !== null) {
+                            handleUpdate(newKey, newValue, newDescription || undefined);
+                          }
+                        }}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(setting.key)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -7,21 +7,15 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Facebook, Twitter, Youtube, Instagram, Mail, Phone, MapPin, Send } from "lucide-react";
 
-const CATEGORIES = [
-  { slug: "politics", en: "Politics", ne: "राजनीति" },
-  { slug: "business", en: "Business", ne: "व्यापार" },
-  { slug: "technology", en: "Technology", ne: "प्रविधि" },
-  { slug: "sports", en: "Sports", ne: "खेलकुद" },
-  { slug: "entertainment", en: "Entertainment", ne: "मनोरञ्जन" },
-  { slug: "international", en: "International", ne: "अन्तर्राष्ट्रिय" },
-  { slug: "nepal", en: "Nepal", ne: "नेपाल" },
-  { slug: "opinion", en: "Opinion", ne: "विचार" },
-];
 
 export default function Footer() {
   const { t, isNepali } = useLanguage();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+
+  // Fetch dynamic categories from backend
+  const { data: categoriesData } = trpc.categories.list.useQuery();
+  const categories = categoriesData ?? [];
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => {
@@ -126,15 +120,15 @@ export default function Footer() {
               {t("Categories", "श्रेणीहरू")}
             </h4>
             <ul className="space-y-2">
-              {CATEGORIES.map((cat) => (
-                <li key={cat.slug}>
+              {categories.map((cat) => (
+                <li key={cat.id}>
                   <Link
                     href={`/category/${cat.slug}`}
                     className={`text-sm text-muted-foreground hover:text-primary transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}
                   >
-                    {t(cat.en, cat.ne)}
+                    {isNepali && cat.nameNe ? cat.nameNe : cat.name}
                   </Link>
                 </li>
               ))}
