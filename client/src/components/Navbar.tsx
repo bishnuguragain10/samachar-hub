@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
+import { useNavCategoriesWithCache } from "@/hooks/useCategoriesWithCache";
 import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,8 +41,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   
-  // Fetch dynamic categories from backend
-  const { data: categoriesData } = trpc.categories.list.useQuery();
+  // Fetch dynamic navigation categories from backend with caching
+  const { data: categoriesData } = useNavCategoriesWithCache();
   const categories = categoriesData ?? [];
 
   useEffect(() => {

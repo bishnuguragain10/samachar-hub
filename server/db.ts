@@ -87,13 +87,48 @@ export async function getUserByEmail(email: string) {
 export async function getAllCategories() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(categories).orderBy(categories.sortOrder, categories.name);
+  return db.select().from(categories).where(eq(categories.isActive, true)).orderBy(categories.sortOrder, categories.name);
+}
+
+export async function getNavCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.isActive, true), eq(categories.isVisibleInNav, true)))
+    .orderBy(categories.sortOrder, categories.name);
+}
+
+export async function getFeaturedCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.isActive, true), eq(categories.isFeatured, true)))
+    .orderBy(categories.sortOrder, categories.name);
 }
 
 export async function getCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1);
+  const result = await db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.slug, slug), eq(categories.isActive, true)))
+    .limit(1);
+  return result[0];
+}
+
+export async function getCategoryById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.id, id), eq(categories.isActive, true)))
+    .limit(1);
   return result[0];
 }
 
@@ -104,28 +139,67 @@ export async function createCategory(data: {
   description?: string;
   descriptionNe?: string;
   color?: string;
+  iconUrl?: string;
+  iconKey?: string;
   sortOrder?: number;
+  parentId?: number;
+  isVisibleInNav?: boolean;
+  isFeatured?: boolean;
+  isActive?: boolean;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.insert(categories).values(data);
-  const result = await db.select().from(categories).where(eq(categories.slug, data.slug)).limit(1);
+  const result = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.slug, data.slug))
+    .limit(1);
   return result[0];
 }
 
 export async function updateCategory(
   id: number,
-  data: Partial<{ name: string; nameNe: string; slug: string; description: string; descriptionNe: string; color: string; sortOrder: number }>
+  data: Partial<{
+    name: string;
+    nameNe: string;
+    slug: string;
+    description: string;
+    descriptionNe: string;
+    color: string;
+    iconUrl: string;
+    iconKey: string;
+    sortOrder: number;
+    parentId: number;
+    isVisibleInNav: boolean;
+    isFeatured: boolean;
+    isActive: boolean;
+  }>
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.update(categories).set(data).where(eq(categories.id, id));
+  await db.update(categories).set({ ...data, updatedAt: new Date() }).where(eq(categories.id, id));
 }
 
 export async function deleteCategory(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.delete(categories).where(eq(categories.id, id));
+  // Soft delete by setting isActive to false
+  await db.update(categories).set({ isActive: false, updatedAt: new Date() }).where(eq(categories.id, id));
+}
+
+export async function reorderCategories(categoryOrders: { id: number; sortOrder: number }[]) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  
+  await db.transaction(async (tx) => {
+    for (const { id, sortOrder } of categoryOrders) {
+      await tx
+        .update(categories)
+        .set({ sortOrder, updatedAt: new Date() })
+        .where(eq(categories.id, id));
+    }
+  });
 }
 
 // ─── Articles ──────────────────────────────────────────────────────────────

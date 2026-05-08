@@ -64,6 +64,10 @@ export const appRouter = router({
   // ─── Categories ────────────────────────────────────────────────────
   categories: router({
     list: publicProcedure.query(() => getAllCategories()),
+    
+    navList: publicProcedure.query(() => getNavCategories()),
+    
+    featured: publicProcedure.query(() => getFeaturedCategories()),
 
     create: adminProcedure
       .input(
@@ -74,7 +78,13 @@ export const appRouter = router({
           description: z.string().optional(),
           descriptionNe: z.string().optional(),
           color: z.string().optional(),
+          iconUrl: z.string().optional(),
+          iconKey: z.string().optional(),
           sortOrder: z.number().optional(),
+          parentId: z.number().optional(),
+          isVisibleInNav: z.boolean().optional(),
+          isFeatured: z.boolean().optional(),
+          isActive: z.boolean().optional(),
         })
       )
       .mutation(({ input }) => createCategory(input)),
@@ -89,7 +99,13 @@ export const appRouter = router({
           description: z.string().optional(),
           descriptionNe: z.string().optional(),
           color: z.string().optional(),
+          iconUrl: z.string().optional(),
+          iconKey: z.string().optional(),
           sortOrder: z.number().optional(),
+          parentId: z.number().optional(),
+          isVisibleInNav: z.boolean().optional(),
+          isFeatured: z.boolean().optional(),
+          isActive: z.boolean().optional(),
         })
       )
       .mutation(({ input }) => {
@@ -100,6 +116,14 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteCategory(input.id)),
+
+    reorder: adminProcedure
+      .input(z.object({ categories: z.array(z.object({ id: z.number(), sortOrder: z.number() })) }))
+      .mutation(({ input }) => reorderCategories(input.categories)),
+
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(({ input }) => getCategoryById(input.id)),
   }),
 
   // ─── Articles ──────────────────────────────────────────────────────

@@ -23,8 +23,15 @@ export const categories = mysqlTable("categories", {
   description: text("description"),
   descriptionNe: text("descriptionNe"),
   color: varchar("color", { length: 20 }).default("#dc2626"),
+  iconUrl: varchar("iconUrl", { length: 500 }),
+  iconKey: varchar("iconKey", { length: 500 }),
   sortOrder: int("sortOrder").default(0),
+  parentId: int("parentId"),
+  isVisibleInNav: boolean("isVisibleInNav").default(true).notNull(),
+  isFeatured: boolean("isFeatured").default(false).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export const articles = mysqlTable("articles", {

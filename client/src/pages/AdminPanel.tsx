@@ -788,20 +788,99 @@ function AdminCategories() {
   const { data, isLoading } = trpc.categories.list.useQuery();
   const [editId, setEditId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
-  const [form, setForm] = useState({ name: "", nameNe: "", slug: "", description: "", color: "#dc2626", sortOrder: 0 });
+  const [form, setForm] = useState({ 
+    name: "", 
+    nameNe: "", 
+    slug: "", 
+    description: "", 
+    descriptionNe: "",
+    color: "#dc2626", 
+    iconUrl: "",
+    parentId: undefined as number | undefined,
+    isVisibleInNav: true,
+    isFeatured: false,
+    isActive: true,
+    sortOrder: 0 
+  });
 
   const create = trpc.categories.create.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); setShowNew(false); setForm({ name: "", nameNe: "", slug: "", description: "", color: "#dc2626", sortOrder: 0 }); toast.success(t("Category created!", "श्रेणी सिर्जना गरियो!")); },
+    onSuccess: () => { 
+      utils.categories.list.invalidate(); 
+      setShowNew(false); 
+      setForm({ 
+        name: "", 
+        nameNe: "", 
+        slug: "", 
+        description: "", 
+        descriptionNe: "",
+        color: "#dc2626", 
+        iconUrl: "",
+        parentId: undefined,
+        isVisibleInNav: true,
+        isFeatured: false,
+        isActive: true,
+        sortOrder: 0 
+      }); 
+      toast.success(t("Category created!", "श्रेणी सिर्जना गरियो!")); 
+    },
   });
+
   const update = trpc.categories.update.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); setEditId(null); toast.success(t("Category updated!", "श्रेणी अपडेट गरियो!")); },
+    onSuccess: () => { 
+      utils.categories.list.invalidate(); 
+      setEditId(null); 
+      toast.success(t("Category updated!", "श्रेणी अपडेट गरियो!")); 
+    },
   });
+
   const del = trpc.categories.delete.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); toast.success(t("Category deleted", "श्रेणी मेटाइयो")); },
+    onSuccess: () => { 
+      utils.categories.list.invalidate(); 
+      toast.success(t("Category deleted", "श्रेणी मेटाइयो")); 
+    },
   });
+
+  const resetForm = () => {
+    setForm({ 
+      name: "", 
+      nameNe: "", 
+      slug: "", 
+      description: "", 
+      descriptionNe: "",
+      color: "#dc2626", 
+      iconUrl: "",
+      parentId: undefined,
+      isVisibleInNav: true,
+      isFeatured: false,
+      isActive: true,
+      sortOrder: 0 
+    });
+  };
+
+  const handleEdit = (cat: any) => {
+    setEditId(cat.id);
+    setForm({
+      name: cat.name || "",
+      nameNe: cat.nameNe || "",
+      slug: cat.slug || "",
+      description: cat.description || "",
+      descriptionNe: cat.descriptionNe || "",
+      color: cat.color || "#dc2626",
+      iconUrl: cat.iconUrl || "",
+      parentId: cat.parentId || undefined,
+      isVisibleInNav: cat.isVisibleInNav ?? true,
+      isFeatured: cat.isFeatured ?? false,
+      isActive: cat.isActive ?? true,
+      sortOrder: cat.sortOrder || 0
+    });
+  };
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">{t("Categories", "श्रेणीहरू")}</h2>
+      </div>
+
       <Button size="sm" className="bg-news-red text-white gap-1" onClick={() => setShowNew(true)}>
         <Plus className="w-3.5 h-3.5" />
         {t("New Category", "नयाँ श्रेणी")}
@@ -814,25 +893,60 @@ function AdminCategories() {
               <th className="text-left px-4 py-3 font-semibold">{t("Name", "नाम")}</th>
               <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("Nepali", "नेपाली")}</th>
               <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("Slug", "स्लग")}</th>
-              <th className="text-right px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
+              <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">{t("Parent", "अभिभा")}</th>
+              <th className="text-center px-4 py-3 font-semibold">{t("Nav", "नेभ")}</th>
+              <th className="text-center px-4 py-3 font-semibold">{t("Featured", "विशेष")}</th>
+              <th className="text-center px-4 py-3 font-semibold">{t("Active", "सक्रिय")}</th>
+              <th className="text-left px-4 py-3 font-semibold">{t("Actions", "कार्यहरू")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("Loading...", "लोड गर्दै...")}</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">{t("Loading...", "लोड गर्दै...")}</td></tr>
             ) : (data ?? []).map((cat) => (
               <tr key={cat.id} className="hover:bg-muted/30">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color ?? "#dc2626" }} />
+                    {cat.iconUrl && (
+                      <img src={cat.iconUrl} alt={cat.name} className="w-6 h-6 rounded object-cover" />
+                    )}
+                    {!cat.iconUrl && (
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color ?? "#dc2626" }} />
+                    )}
                     <span className="font-medium">{cat.name}</span>
+                    {cat.isFeatured && <Star className="w-3 h-3 text-yellow-500 fill-current" />}
                   </div>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell font-nepali text-muted-foreground">{cat.nameNe ?? "—"}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground font-mono text-xs">{cat.slug}</td>
+                <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">{cat.parentId || "—"}</td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isVisibleInNav}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isVisibleInNav: checked });
+                    }}
+                  />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isFeatured}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isFeatured: checked });
+                    }}
+                  />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isActive}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isActive: checked });
+                    }}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 justify-end">
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setEditId(cat.id)}>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleEdit(cat)}>
                       <Edit className="w-3.5 h-3.5" />
                     </Button>
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => del.mutate({ id: cat.id })}>
@@ -848,18 +962,141 @@ function AdminCategories() {
 
       {/* New/Edit dialog */}
       <Dialog open={showNew || editId !== null} onOpenChange={() => { setShowNew(false); setEditId(null); }}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editId ? t("Edit Category", "श्रेणी सम्पादन") : t("New Category", "नयाँ श्रेणी")}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div><Label>{t("Name (English)", "नाम (अंग्रेजी)")}</Label><Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} className="mt-1" /></div>
-            <div><Label className="font-nepali">{t("Name (Nepali)", "नाम (नेपाली)")}</Label><Input value={form.nameNe} onChange={(e) => setForm((f) => ({ ...f, nameNe: e.target.value }))} className="mt-1 font-nepali" /></div>
-            <div><Label>{t("Slug", "स्लग")}</Label><Input value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} className="mt-1 font-mono text-sm" /></div>
-            <div><Label>{t("Color", "रंग")}</Label><Input type="color" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="mt-1 h-10 w-full" /></div>
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>{t("Name (English)", "नाम (अंग्रेजी)")}</Label>
+                <Input 
+                  value={form.name} 
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} 
+                  className="mt-1" 
+                  placeholder={t("e.g., Politics", "जस्तै: राजनीति")}
+                />
+              </div>
+              <div>
+                <Label className="font-nepali">{t("Name (Nepali)", "नाम (नेपाली)")}</Label>
+                <Input 
+                  value={form.nameNe} 
+                  onChange={(e) => setForm((f) => ({ ...f, nameNe: e.target.value }))} 
+                  className="mt-1 font-nepali" 
+                  placeholder={t("e.g., राजनीति", "जस्तै: राजनीति")}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>{t("Slug", "स्लग")}</Label>
+                <Input 
+                  value={form.slug} 
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} 
+                  className="mt-1 font-mono text-sm" 
+                  placeholder={t("e.g., politics", "जस्तै: politics")}
+                />
+              </div>
+              <div>
+                <Label>{t("Sort Order", "क्रम संख्या")}</Label>
+                <Input 
+                  type="number" 
+                  value={form.sortOrder} 
+                  onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} 
+                  className="mt-1" 
+                  placeholder="1"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>{t("Color", "रंग")}</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input 
+                    type="color" 
+                    value={form.color} 
+                    onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} 
+                    className="h-10 w-20" 
+                  />
+                  <Input 
+                    value={form.iconUrl} 
+                    onChange={(e) => setForm((f) => ({ ...f, iconUrl: e.target.value }))} 
+                    placeholder={t("Icon URL", "आइकन URL")}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>{t("Parent Category", "अभिभा श्रेणी")}</Label>
+                <select 
+                  value={form.parentId || ""} 
+                  onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value ? Number(e.target.value) : null }))} 
+                  className="mt-1 w-full"
+                >
+                  <option value="">{t("None (Parent)", "कुनै (अभिभा)")}</option>
+                  {(data ?? []).map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <Label>{t("Description (English)", "विवरण (अंग्रेजी)")}</Label>
+              <Textarea 
+                value={form.description} 
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} 
+                className="mt-1" 
+                placeholder={t("Category description...", "श्रेणी विवरण...")}
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label className="font-nepali">{t("Description (Nepali)", "विवरण (नेपाली)")}</Label>
+              <Textarea 
+                value={form.descriptionNe} 
+                onChange={(e) => setForm((f) => ({ ...f, descriptionNe: e.target.value }))} 
+                className="mt-1 font-nepali" 
+                placeholder={t("Category description in Nepali...", "नेपालीमा श्रेणी विवरण...")}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="isVisibleInNav"
+                  checked={form.isVisibleInNav}
+                  onCheckedChange={(checked) => setForm((f) => ({ ...f, isVisibleInNav: checked }))}
+                />
+                <Label htmlFor="isVisibleInNav">{t("Show in Navigation", "नेभिगेसनमा देखाउनुहोस्")}</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="isFeatured"
+                  checked={form.isFeatured}
+                  onCheckedChange={(checked) => setForm((f) => ({ ...f, isFeatured: checked }))}
+                />
+                <Label htmlFor="isFeatured">{t("Featured Category", "विशेष श्रेणी")}</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="isActive"
+                  checked={form.isActive}
+                  onCheckedChange={(checked) => setForm((f) => ({ ...f, isActive: checked }))}
+                />
+                <Label htmlFor="isActive">{t("Active", "सक्रिय")}</Label>
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowNew(false); setEditId(null); }}>{t("Cancel", "रद्द")}</Button>
+            <Button variant="outline" onClick={() => { setShowNew(false); setEditId(null); resetForm(); }}>
+              {t("Cancel", "रद्द")}
+            </Button>
             <Button
               className="bg-news-red text-white"
               onClick={() => {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCategoriesWithCache } from "@/hooks/useCategoriesWithCache";
 import NewsCard from "@/components/NewsCard";
 import AdSlot from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,7 @@ export default function Home() {
     trending: true,
   });
 
-  const { data: categoriesData } = trpc.categories.list.useQuery();
+  const { data: categoriesData } = useCategoriesWithCache();
   const categories = categoriesData ?? [];
 
   const featuredArticle = featuredData?.articles?.[0];
