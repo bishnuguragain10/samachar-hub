@@ -41,8 +41,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   
-  // Fetch dynamic navigation categories from backend with caching
-  const { data: categoriesData } = useNavCategoriesWithCache();
+  // Fetch dynamic navigation categories from backend
+  const { data: categoriesData } = trpc.categories.navList.useQuery();
   const categories = categoriesData ?? [];
 
   useEffect(() => {
@@ -66,47 +66,30 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-shadow duration-200 ${
-        scrolled ? "shadow-md" : ""
-      } bg-background border-b border-border`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        scrolled ? "bg-white/95 backdrop-blur-md shadow-lg" : "bg-white"
+      } border-b border-gray-100`}
     >
-      {/* Top bar */}
-      <div className="bg-news-red text-white py-1 px-4 text-xs flex items-center justify-between">
-        <span className={language === "ne" ? "font-nepali" : ""}>
-          {t("Nepal's Trusted News Source", "नेपालको विश्वसनीय समाचार स्रोत")}
-        </span>
-        <span className="hidden sm:block">
-          {new Date().toLocaleDateString(language === "ne" ? "ne-NP" : "en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </span>
-      </div>
-
-      {/* Main nav */}
-      <div className="container">
-        <div className="flex items-center justify-between h-16 gap-4">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-9 h-9 bg-news-red rounded-lg flex items-center justify-center">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-news-red to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <div className="hidden sm:block">
-              <div className="font-bold text-lg leading-tight text-foreground">Samachar Hub</div>
-              <div className="font-nepali text-xs text-muted-foreground leading-tight">समाचार हब</div>
-            </div>
+            <span className="font-bold text-xl hidden sm:block text-gray-900 group-hover:text-news-red transition-colors">Samachar Hub</span>
           </Link>
 
           {/* Desktop category nav */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+          <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
             {categories.slice(0, 6).map((cat) => (
               <Link
                 key={cat.id}
                 href={`/category/${cat.slug}`}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground ${
-                  location === `/category/${cat.slug}` ? "bg-accent text-accent-foreground" : "text-foreground"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
+                  location === `/category/${cat.slug}` 
+                    ? "bg-news-red text-white shadow-sm" 
+                    : "text-gray-700 hover:shadow-sm"
                 } ${language === "ne" ? "font-nepali" : ""}`}
               >
                 {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
@@ -115,14 +98,14 @@ export default function Navbar() {
             {categories.length > 6 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-1">
+                  <Button variant="ghost" size="sm" className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-news-red transition-all duration-200 gap-1">
                     {t("More", "थप")} <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="border-gray-200 shadow-lg">
                   {categories.slice(6).map((cat) => (
-                    <DropdownMenuItem key={cat.id} asChild>
-                      <Link href={`/category/${cat.slug}`} className={language === "ne" ? "font-nepali" : ""}>
+                    <DropdownMenuItem key={cat.id} asChild className="hover:bg-gray-100 hover:text-news-red">
+                      <Link href={`/category/${cat.slug}`} className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}>
                         {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
                       </Link>
                     </DropdownMenuItem>
@@ -133,35 +116,33 @@ export default function Navbar() {
           </nav>
 
           {/* Right controls */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Search */}
             {searchOpen ? (
-              <form onSubmit={handleSearch} className="flex items-center gap-1">
+              <form onSubmit={handleSearch} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 shadow-sm">
+                <Search className="w-4 h-4 text-gray-400" />
                 <Input
                   ref={searchRef}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
-                  className="w-40 sm:w-56 h-8 text-sm"
+                  className="w-32 sm:w-48 h-auto border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Button type="submit" size="sm" variant="ghost" className="h-8 w-8 p-0">
-                  <Search className="w-4 h-4" />
-                </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-8 w-8 p-0"
+                  className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
                   onClick={() => setSearchOpen(false)}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3 h-3" />
                 </Button>
               </form>
             ) : (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
               >
@@ -173,21 +154,21 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 gap-1 text-xs font-medium"
+              className="h-9 px-3 gap-1 text-xs font-medium rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               onClick={toggleLanguage}
               title={t("Switch to Nepali", "अंग्रेजीमा जानुहोस्")}
             >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{language === "en" ? "नेपाली" : "EN"}</span>
+              <Globe className="w-3 h-3" />
+              {language === "ne" ? "EN" : "NE"}
             </Button>
 
-            {/* Dark mode */}
+            {/* Theme toggle */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               onClick={toggleTheme}
-              aria-label="Toggle theme"
+              title={t("Toggle theme", "विषय परिवर्तन गर्नुहोस्")}
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -196,33 +177,51 @@ export default function Navbar() {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
-                    <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                      {user?.name?.[0]?.toUpperCase() ?? "U"}
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-3 py-2 text-sm font-medium">{user?.name}</div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/bookmarks" className="flex items-center gap-2">
+                <DropdownMenuContent align="end" className="w-56 border-gray-200 shadow-lg">
+                  <div className="flex items-center justify-start gap-3 p-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </div>
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium text-sm text-gray-900">{user?.name || "User"}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="border-gray-100" />
+                  {user?.role === "admin" && (
+                    <>
+                      <DropdownMenuItem asChild className="hover:bg-gray-100">
+                        <Link href="/admin" className="flex items-center gap-2 text-sm">
+                          <Settings className="w-4 h-4" />
+                          {t("Admin Panel", "एडमिन प्यानेल")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="border-gray-100" />
+                    </>
+                  )}
+                  <DropdownMenuItem asChild className="hover:bg-gray-100">
+                    <Link href="/bookmarks" className="flex items-center gap-2 text-sm">
                       <Bookmark className="w-4 h-4" />
-                      {t("Bookmarks", "बुकमार्क")}
+                      {t("Bookmarks", "बुकमार्कहरू")}
                     </Link>
                   </DropdownMenuItem>
-                  {user?.role === "admin" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        {t("Admin Panel", "प्रशासन")}
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-destructive">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                      if (location === "/") {
+                        window.location.reload();
+                      }
+                    }}
+                    className="flex items-center gap-2 text-sm hover:bg-gray-100"
+                  >
                     <LogOut className="w-4 h-4" />
-                    {t("Sign Out", "साइन आउट")}
+                    {t("Logout", "लगआउट")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -230,44 +229,63 @@ export default function Navbar() {
               <>
                 <Button
                   size="sm"
-                  className="h-8 bg-news-red hover:bg-news-red/90 text-white text-xs px-3"
+                  className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                   onClick={() => (window.location.href = "/login")}
                 >
                   {t("Login", "लगइन")}
                 </Button>
+                {/* Mobile menu toggle */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 lg:hidden rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  onClick={() => setMobileOpen(!mobileOpen)}
+                  aria-label="Toggle menu"
+                >
+                  {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                </Button>
               </>
             )}
-
-            {/* Mobile menu */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 lg:hidden"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </Button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-background">
-          <nav className="container py-3 grid grid-cols-2 gap-1">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                className={`px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors ${
-                  language === "ne" ? "font-nepali" : ""
-                }`}
-                onClick={() => setMobileOpen(false)}
-              >
-                {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
-              </Link>
-            ))}
-          </nav>
+        <div className="lg:hidden border-t border-gray-200 bg-white shadow-lg">
+          <div className="container mx-auto px-4 py-6 space-y-6">
+            {/* Mobile search */}
+            <form onSubmit={handleSearch} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+              <Search className="w-4 h-4 text-gray-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
+                className="flex-1 h-auto border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </form>
+            
+            {/* Mobile categories */}
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                {t("Categories", "श्रेणीहरू")}
+              </h3>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/category/${cat.slug}`}
+                  className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
+                    location === `/category/${cat.slug}` 
+                      ? "bg-news-red text-white shadow-sm" 
+                      : "text-gray-700"
+                  } ${language === "ne" ? "font-nepali" : ""}`}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </header>

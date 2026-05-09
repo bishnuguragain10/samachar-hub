@@ -796,7 +796,7 @@ function AdminCategories() {
     descriptionNe: "",
     color: "#dc2626", 
     iconUrl: "",
-    parentId: undefined as number | undefined,
+    parentId: null as number | null,
     isVisibleInNav: true,
     isFeatured: false,
     isActive: true,
@@ -815,7 +815,7 @@ function AdminCategories() {
         descriptionNe: "",
         color: "#dc2626", 
         iconUrl: "",
-        parentId: undefined,
+        parentId: null,
         isVisibleInNav: true,
         isFeatured: false,
         isActive: true,
@@ -849,7 +849,7 @@ function AdminCategories() {
       descriptionNe: "",
       color: "#dc2626", 
       iconUrl: "",
-      parentId: undefined,
+      parentId: null,
       isVisibleInNav: true,
       isFeatured: false,
       isActive: true,
@@ -867,7 +867,7 @@ function AdminCategories() {
       descriptionNe: cat.descriptionNe || "",
       color: cat.color || "#dc2626",
       iconUrl: cat.iconUrl || "",
-      parentId: cat.parentId || undefined,
+      parentId: cat.parentId || null,
       isVisibleInNav: cat.isVisibleInNav ?? true,
       isFeatured: cat.isFeatured ?? false,
       isActive: cat.isActive ?? true,
@@ -877,6 +877,18 @@ function AdminCategories() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">{t("Categories", "श्रेणीहरू")}</h2>
+        <Button 
+          size="sm" 
+          className="bg-green-600 text-white gap-1" 
+          onClick={() => utils.categories.seed.mutate()}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          {t("Seed Default Categories", "डिफल्ट श्रेणीहरू")}
+        </Button>
+      </div>
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">{t("Categories", "श्रेणीहरू")}</h2>
       </div>
@@ -911,14 +923,45 @@ function AdminCategories() {
                       <img src={cat.iconUrl} alt={cat.name} className="w-6 h-6 rounded object-cover" />
                     )}
                     {!cat.iconUrl && (
+                    {cat.iconUrl && (
+                      <img src={cat.iconUrl} alt={cat.name} className="w-6 h-6 rounded object-cover" />
+                    )}
+                    {!cat.iconUrl && (
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color ?? "#dc2626" }} />
                     )}
+                    )}
                     <span className="font-medium">{cat.name}</span>
+                    {cat.isFeatured && <Star className="w-3 h-3 text-yellow-500 fill-current" />}
                     {cat.isFeatured && <Star className="w-3 h-3 text-yellow-500 fill-current" />}
                   </div>
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell font-nepali text-muted-foreground">{cat.nameNe ?? "—"}</td>
                 <td className="px-4 py-3 hidden md:table-cell text-muted-foreground font-mono text-xs">{cat.slug}</td>
+                <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">{cat.parentId || "—"}</td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isVisibleInNav}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isVisibleInNav: checked });
+                    }}
+                  />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isFeatured}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isFeatured: checked });
+                    }}
+                  />
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <Switch
+                    checked={cat.isActive}
+                    onCheckedChange={(checked) => {
+                      update.mutate({ id: cat.id, isActive: checked });
+                    }}
+                  />
+                </td>
                 <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground text-xs">{cat.parentId || "—"}</td>
                 <td className="px-4 py-3 text-center">
                   <Switch
@@ -1047,23 +1090,24 @@ function AdminCategories() {
 
             <div>
               <Label>{t("Description (English)", "विवरण (अंग्रेजी)")}</Label>
-              <Textarea 
-                value={form.description} 
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} 
-                className="mt-1" 
-                placeholder={t("Category description...", "श्रेणी विवरण...")}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label className="font-nepali">{t("Description (Nepali)", "विवरण (नेपाली)")}</Label>
-              <Textarea 
-                value={form.descriptionNe} 
-                onChange={(e) => setForm((f) => ({ ...f, descriptionNe: e.target.value }))} 
-                className="mt-1 font-nepali" 
-                placeholder={t("Category description in Nepali...", "नेपालीमा श्रेणी विवरण...")}
-                rows={3}
-              />
+                <Textarea 
+                  value={form.description} 
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} 
+                  className="mt-1" 
+                  placeholder={t("Category description...", "श्रेणी विवरण...")}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="font-nepali">{t("Description (Nepali)", "विवरण (नेपाली)")}</Label>
+                <Textarea 
+                  value={form.descriptionNe} 
+                  onChange={(e) => setForm((f) => ({ ...f, descriptionNe: e.target.value }))} 
+                  className="mt-1 font-nepali" 
+                  placeholder={t("Category description in Nepali...", "नेपालीमा श्रेणी विवरण...")}
+                  rows={3}
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-4">

@@ -54,57 +54,60 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
   if (variant === "hero") {
     return (
       <Link href={`/article/${article.slug}`} className="group block">
-        <div className="relative rounded-xl overflow-hidden aspect-[16/9] bg-muted">
+        <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-gray-100 shadow-lg group-hover:shadow-xl transition-all duration-300">
           {article.coverImage ? (
             <img
               src={article.coverImage}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-news-red/20 to-primary/10 flex items-center justify-center">
-              <span className="text-6xl opacity-20">📰</span>
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <span className="text-6xl opacity-30">📰</span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
               {article.isBreaking && (
-                <Badge className="bg-news-red text-white text-xs gap-1">
+                <Badge className="bg-red-600 text-white text-xs font-semibold gap-1 px-2 py-1">
                   <Zap className="w-3 h-3 fill-current" />
                   {t("Breaking", "ब्रेकिङ")}
                 </Badge>
               )}
               {category && (
                 <Badge
-                  variant="secondary"
-                  className="text-xs"
-                  style={{ backgroundColor: category.color + "33", color: category.color ?? undefined }}
+                  className="text-xs font-semibold px-2 py-1"
+                  style={{ 
+                    backgroundColor: category.color ? category.color + "20" : "#f3f4f6", 
+                    color: category.color || "#374151", 
+                    border: category.color ? `1px solid ${category.color}40` : "1px solid #d1d5db" 
+                  }}
                 >
                   {categoryName}
                 </Badge>
               )}
               {article.isSponsored && (
-                <Badge variant="outline" className="text-xs text-white border-white/50">
+                <Badge variant="outline" className="text-xs text-white border-white/30 bg-white/10 backdrop-blur-sm">
                   {t("Sponsored", "प्रायोजित")}
                 </Badge>
               )}
             </div>
             <h2
-              className={`text-white font-bold text-xl sm:text-2xl leading-tight mb-2 group-hover:text-white/90 transition-colors ${
+              className={`text-white font-bold text-2xl sm:text-3xl leading-tight mb-3 group-hover:text-white transition-colors ${
                 isNepali ? "font-nepali" : ""
               }`}
             >
               {title}
             </h2>
             {excerpt && (
-              <p className={`text-white/75 text-sm line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}>
+              <p className={`text-white/80 text-sm sm:text-base line-clamp-3 mb-4 ${isNepali ? "font-nepali" : ""}`}>
                 {excerpt}
               </p>
             )}
-            <div className="flex items-center gap-3 text-white/60 text-xs">
-              {author?.name && <span>{author.name}</span>}
+            <div className="flex items-center gap-4 text-white/70 text-xs sm:text-sm">
+              {author?.name && <span className="font-medium">{author.name}</span>}
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {timeAgo}
@@ -122,38 +125,47 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
 
   if (variant === "horizontal") {
     return (
-      <Link href={`/article/${article.slug}`} className="group flex gap-3">
-        <div className="w-20 h-16 sm:w-24 sm:h-18 rounded-lg overflow-hidden bg-muted shrink-0">
+      <Link href={`/article/${article.slug}`} className="group flex gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+        <div className="w-24 h-16 sm:w-28 sm:h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
           {article.coverImage ? (
             <img
               src={article.coverImage}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-news-red/10 to-primary/5" />
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
           )}
         </div>
         <div className="flex-1 min-w-0">
           {category && (
             <span
-              className={`text-xs font-semibold mb-1 block ${isNepali ? "font-nepali" : ""}`}
-              style={{ color: category.color ?? "var(--news-red)" }}
+              className={`text-xs font-semibold mb-2 inline-block px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
+              style={{ 
+                backgroundColor: category.color ? category.color + "15" : "#f3f4f6", 
+                color: category.color || "#dc2626" 
+              }}
             >
               {categoryName}
             </span>
           )}
           <h3
-            className={`text-sm font-semibold leading-tight line-clamp-2 group-hover:text-primary transition-colors ${
+            className={`text-sm font-semibold leading-tight line-clamp-2 group-hover:text-news-red transition-colors mb-2 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
             {title}
           </h3>
-          <div className="flex items-center gap-2 mt-1 text-muted-foreground text-xs">
-            <Clock className="w-3 h-3" />
-            <span>{timeAgo}</span>
+          <div className="flex items-center gap-3 text-gray-500 text-xs">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {timeAgo}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {article.viewCount.toLocaleString()}
+            </span>
           </div>
         </div>
       </Link>
@@ -181,56 +193,59 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
   // Default card
   return (
     <Link href={`/article/${article.slug}`} className="group block">
-      <div className="rounded-xl overflow-hidden border border-border bg-card hover:shadow-md transition-all duration-200 h-full flex flex-col">
-        <div className="aspect-[16/10] overflow-hidden bg-muted">
+      <div className="rounded-2xl overflow-hidden bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+        <div className="aspect-[16/10] overflow-hidden bg-gray-100">
           {article.coverImage ? (
             <img
               src={article.coverImage}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-news-red/10 to-primary/5 flex items-center justify-center">
-              <span className="text-4xl opacity-20">📰</span>
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <span className="text-4xl opacity-30">📰</span>
             </div>
           )}
         </div>
-        <div className="p-4 flex flex-col flex-1">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             {article.isBreaking && (
-              <Badge className="bg-news-red text-white text-xs gap-1 py-0">
+              <Badge className="bg-red-600 text-white text-xs font-semibold gap-1 px-2 py-1">
                 <Zap className="w-2.5 h-2.5 fill-current" />
                 {t("Breaking", "ब्रेकिङ")}
               </Badge>
             )}
             {category && (
               <span
-                className={`text-xs font-semibold ${isNepali ? "font-nepali" : ""}`}
-                style={{ color: category.color ?? "var(--news-red)" }}
+                className={`text-xs font-semibold px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
+                style={{ 
+                  backgroundColor: category.color ? category.color + "15" : "#f3f4f6", 
+                  color: category.color || "#dc2626" 
+                }}
               >
                 {categoryName}
               </span>
             )}
             {article.isSponsored && (
-              <Badge variant="outline" className="text-xs py-0">
+              <Badge variant="outline" className="text-xs font-semibold px-2 py-1 border-gray-300">
                 {t("Sponsored", "प्रायोजित")}
               </Badge>
             )}
           </div>
           <h3
-            className={`font-bold text-base leading-snug mb-2 line-clamp-3 group-hover:text-primary transition-colors flex-1 ${
+            className={`font-bold text-lg leading-snug mb-3 line-clamp-3 group-hover:text-news-red transition-colors flex-1 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
             {title}
           </h3>
           {showExcerpt && excerpt && (
-            <p className={`text-sm text-muted-foreground line-clamp-2 mb-3 ${isNepali ? "font-nepali" : ""}`}>
+            <p className={`text-sm text-gray-600 line-clamp-2 mb-4 ${isNepali ? "font-nepali" : ""}`}>
               {excerpt}
             </p>
           )}
-          <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-2 border-t border-border">
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-3 border-t border-gray-100">
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               <span>{timeAgo}</span>
