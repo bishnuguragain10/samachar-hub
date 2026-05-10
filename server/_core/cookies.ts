@@ -31,9 +31,9 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    // Use SameSite=None so cookies are included on cross-origin requests
-    // such as front-end dev servers running on a different port.
-    sameSite: "none",
+    // For localhost, use Lax to avoid secure requirement issues
+    // For production, use None for cross-origin requests
+    sameSite: isLocalhost ? "lax" : "none",
     secure: isSecure,
   };
 }

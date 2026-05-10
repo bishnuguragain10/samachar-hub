@@ -6,7 +6,6 @@ import { useCategoriesWithCache } from "@/hooks/useCategoriesWithCache";
 import NewsCard from "@/components/NewsCard";
 import AdSlot from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, ChevronRight } from "lucide-react";
 import HomeNavbar from "@/components/HomeNavbar";
