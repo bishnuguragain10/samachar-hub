@@ -8,58 +8,15 @@ import AdSlot from "@/components/AdSlot";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, ChevronRight, Flame, Clock, BookOpen } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { TrendingUp, ChevronRight } from "lucide-react";
 import HomeNavbar from "@/components/HomeNavbar";
 import HomepageNewsCards from "@/components/HomepageNewsCards";
-
-function SectionHeader({
-  en,
-  ne,
-  href,
-}: {
-  en: string;
-  ne: string;
-  href?: string;
-}) {
-  const { t, isNepali } = useLanguage();
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-6 bg-news-red rounded-full" />
-        <h2 className={`text-lg font-bold ${isNepali ? "font-nepali" : ""}`}>
-          {t(en, ne)}
-        </h2>
-      </div>
-      {href && (
-        <Link href={href}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs gap-1 text-muted-foreground hover:text-primary"
-          >
-            {t("View All", "सबै हेर्नुहोस्")}{" "}
-            <ChevronRight className="w-3 h-3" />
-          </Button>
-        </Link>
-      )}
-    </div>
-  );
-}
-
-function ArticleSkeleton() {
-  return (
-    <div className="rounded-xl overflow-hidden border border-border">
-      <Skeleton className="aspect-[16/10] w-full" />
-      <div className="p-4 space-y-2">
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-24" />
-      </div>
-    </div>
-  );
-}
+import SectionHeader from "@/components/SectionHeader";
+import ArticleSkeleton from "@/components/ArticleSkeleton";
+import HorizontalArticleSkeleton from "@/components/HorizontalArticleSkeleton";
+import CategorySkeleton from "@/components/CategorySkeleton";
+import EmptyState from "@/components/EmptyState";
+import CategorySection from "@/components/CategorySection";
 
 export default function Home() {
   const { t, isNepali } = useLanguage();
@@ -135,13 +92,7 @@ export default function Home() {
               <div className="space-y-4">
                 {trendingArticles.length === 0
                   ? Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="flex gap-3">
-                        <Skeleton className="w-20 h-14 rounded-lg shrink-0" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-3 w-3/4" />
-                        </div>
-                      </div>
+                      <HorizontalArticleSkeleton key={i} />
                     ))
                   : trendingArticles.map(item => (
                       <NewsCard
@@ -255,26 +206,32 @@ export default function Home() {
             <div className="bg-card border border-border rounded-xl p-4">
               <SectionHeader en="Categories" ne="श्रेणीहरू" />
               <div className="space-y-1">
-                {(categoriesData ?? []).map(cat => (
-                  <Link key={cat.id} href={`/category/${cat.slug}`}>
-                    <div className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-accent transition-colors group">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: cat.color ?? "#dc2626" }}
-                        />
-                        <span
-                          className={`text-sm font-medium group-hover:text-primary transition-colors ${
-                            isNepali ? "font-nepali" : ""
-                          }`}
-                        >
-                          {isNepali && cat.nameNe ? cat.nameNe : cat.name}
-                        </span>
+                {categories.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <CategorySkeleton />
+                  </div>
+                ) : (
+                  categories.map(cat => (
+                    <Link key={cat.id} href={`/category/${cat.slug}`}>
+                      <div className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-accent transition-colors group">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ backgroundColor: cat.color ?? "#dc2626" }}
+                          />
+                          <span
+                            className={`text-sm font-medium group-hover:text-primary transition-colors ${
+                              isNepali ? "font-nepali" : ""
+                            }`}
+                          >
+                            {isNepali && cat.nameNe ? cat.nameNe : cat.name}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
 
@@ -286,49 +243,19 @@ export default function Home() {
         </div>
 
         {/* Category sections */}
-        {categories.slice(0, 3).map(cat => (
-          <CategorySection key={cat.id} category={cat} />
-        ))}
+        {categories.length === 0 ? (
+          <EmptyState 
+            title="No Categories Available" 
+            titleNe="कुनै श्रेणीहरू उपलब्ध"
+            message="Categories are loading or not available at the moment."
+            messageNe="श्रेणीहरू लोड हुँदैछ वा अहिले उपलब्ध छैन्।"
+          />
+        ) : (
+          categories.slice(0, 3).map(cat => (
+            <CategorySection key={cat.id} category={cat} />
+          ))
+        )}
       </div>
-    </div>
-  );
-}
-
-function CategorySection({ category }: { category: any }) {
-  const { t, isNepali } = useLanguage();
-
-  const { data, isLoading } = trpc.articles.list.useQuery(
-    { limit: 4, categoryId: category?.id },
-    { enabled: !!category?.id }
-  );
-
-  const articles = data?.articles ?? [];
-  if (!isLoading && articles.length === 0) return null;
-
-  const categoryName =
-    isNepali && category.nameNe ? category.nameNe : category.name;
-
-  return (
-    <div className="mt-10">
-      <SectionHeader
-        en={categoryName}
-        ne={categoryName}
-        href={`/category/${category.slug}`}
-      />
-      <Separator className="mb-4" />
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <ArticleSkeleton key={i} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {articles.map(item => (
-            <NewsCard key={item.article.id} data={item} variant="default" />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
