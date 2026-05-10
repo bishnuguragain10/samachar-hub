@@ -5,8 +5,16 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Facebook, Twitter, Youtube, Instagram, Mail, Phone, MapPin, Send } from "lucide-react";
-
+import {
+  Facebook,
+  Twitter,
+  Youtube,
+  Instagram,
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+} from "lucide-react";
 
 export default function Footer() {
   const { t, isNepali } = useLanguage();
@@ -19,11 +27,16 @@ export default function Footer() {
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => {
-      toast.success(t("Successfully subscribed to newsletter!", "न्यूजलेटरमा सफलतापूर्वक सदस्यता लिइयो!"));
+      toast.success(
+        t(
+          "Successfully subscribed to newsletter!",
+          "न्यूजलेटरमा सफलतापूर्वक सदस्यता लिइयो!"
+        )
+      );
       setEmail("");
       setName("");
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err.message || t("Failed to subscribe", "सदस्यता लिन असफल"));
     },
   });
@@ -40,28 +53,38 @@ export default function Footer() {
       <div className="bg-news-red text-white">
         <div className="container py-10">
           <div className="max-w-2xl mx-auto text-center">
-            <h3 className={`text-2xl font-bold mb-2 ${isNepali ? "font-nepali" : ""}`}>
+            <h3
+              className={`text-2xl font-bold mb-2 ${isNepali ? "font-nepali" : ""}`}
+            >
               {t("Stay Informed", "सूचित रहनुहोस्")}
             </h3>
-            <p className={`text-white/80 mb-6 text-sm ${isNepali ? "font-nepali" : ""}`}>
+            <p
+              className={`text-white/80 mb-6 text-sm ${isNepali ? "font-nepali" : ""}`}
+            >
               {t(
                 "Get the latest news from Nepal delivered to your inbox.",
                 "नेपालका ताजा समाचार आफ्नो इनबक्समा पाउनुहोस्।"
               )}
             </p>
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+            >
               <Input
                 type="text"
-                placeholder={t("Your name (optional)", "तपाईंको नाम (वैकल्पिक)")}
+                placeholder={t(
+                  "Your name (optional)",
+                  "तपाईंको नाम (वैकल्पिक)"
+                )}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 h-10"
               />
               <Input
                 type="email"
                 placeholder={t("Your email address", "तपाईंको इमेल ठेगाना")}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 required
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 h-10"
               />
@@ -89,26 +112,46 @@ export default function Footer() {
               </div>
               <div>
                 <div className="font-bold text-sm">Samachar Hub</div>
-                <div className="font-nepali text-xs text-muted-foreground">समाचार हब</div>
+                <div className="font-nepali text-xs text-muted-foreground">
+                  समाचार हब
+                </div>
               </div>
             </div>
-            <p className={`text-sm text-muted-foreground mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <p
+              className={`text-sm text-muted-foreground mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {t(
                 "Nepal's trusted source for breaking news, politics, business, sports, and more.",
                 "नेपालको विश्वसनीय समाचार स्रोत — ब्रेकिङ न्युज, राजनीति, व्यापार, खेलकुद र थप।"
               )}
             </p>
             <div className="flex items-center gap-3">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Facebook"
+              >
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Twitter">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Twitter"
+              >
                 <Twitter className="w-4 h-4" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="YouTube">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="YouTube"
+              >
                 <Youtube className="w-4 h-4" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Instagram"
+              >
                 <Instagram className="w-4 h-4" />
               </a>
             </div>
@@ -116,11 +159,13 @@ export default function Footer() {
 
           {/* Categories */}
           <div>
-            <h4 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <h4
+              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {t("Categories", "श्रेणीहरू")}
             </h4>
             <ul className="space-y-2">
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <li key={cat.id}>
                   <Link
                     href={`/category/${cat.slug}`}
@@ -137,7 +182,9 @@ export default function Footer() {
 
           {/* Quick links */}
           <div>
-            <h4 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <h4
+              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {t("Quick Links", "द्रुत लिङ्कहरू")}
             </h4>
             <ul className="space-y-2">
@@ -148,7 +195,7 @@ export default function Footer() {
                 { href: "#about", en: "About Us", ne: "हाम्रो बारेमा" },
                 { href: "#contact", en: "Contact", ne: "सम्पर्क" },
                 { href: "#advertise", en: "Advertise", ne: "विज्ञापन" },
-              ].map((link) => (
+              ].map(link => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -165,7 +212,9 @@ export default function Footer() {
 
           {/* Contact */}
           <div id="contact">
-            <h4 className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <h4
+              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {t("Contact Us", "सम्पर्क गर्नुहोस्")}
             </h4>
             <ul className="space-y-3">
@@ -177,7 +226,10 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4 shrink-0 text-news-red" />
-                <a href="mailto:news@samacharhub.com" className="hover:text-primary transition-colors">
+                <a
+                  href="mailto:news@samacharhub.com"
+                  className="hover:text-primary transition-colors"
+                >
                   news@samacharhub.com
                 </a>
               </li>

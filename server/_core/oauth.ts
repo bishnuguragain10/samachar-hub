@@ -7,25 +7,32 @@ import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { ENV } from "./env";
 
-const adminResetTokens = new Map<string, { token: string; expiresAt: number }>();
+const adminResetTokens = new Map<
+  string,
+  { token: string; expiresAt: number }
+>();
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
   return typeof value === "string" ? value : undefined;
 }
 
-
 async function ensureDefaultAdminAccount() {
   const adminEmail = ENV.adminEmail;
   const adminPassword = ENV.adminPassword;
 
   if (!adminEmail || !adminPassword) {
-    console.warn("[Admin Setup] ADMIN_EMAIL or ADMIN_PASSWORD is not configured; skipping default admin setup");
+    console.warn(
+      "[Admin Setup] ADMIN_EMAIL or ADMIN_PASSWORD is not configured; skipping default admin setup"
+    );
     return undefined;
   }
 
   const existingUser = await db.getUserByEmail(adminEmail);
-  const shouldWriteConfiguredCredentials = !existingUser || existingUser.role !== "admin" || !existingUser.passwordHash;
+  const shouldWriteConfiguredCredentials =
+    !existingUser ||
+    existingUser.role !== "admin" ||
+    !existingUser.passwordHash;
 
   if (!shouldWriteConfiguredCredentials) {
     return existingUser;
@@ -53,7 +60,10 @@ async function ensureDefaultAdminAccount() {
 
 export function registerOAuthRoutes(app: Express) {
   void ensureDefaultAdminAccount().catch(error => {
-    console.error("[Admin Setup] Failed to prepare default admin account:", error);
+    console.error(
+      "[Admin Setup] Failed to prepare default admin account:",
+      error
+    );
   });
 
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
@@ -88,7 +98,10 @@ export function registerOAuthRoutes(app: Express) {
       });
 
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
 
       res.redirect(302, "/");
     } catch (error) {
@@ -109,7 +122,10 @@ export function registerOAuthRoutes(app: Express) {
         const testName = queryName ?? ENV.devAdminName;
         const testOpenId = queryOpenId ?? testEmail ?? ENV.devAdminOpenId;
 
-        console.log("[Dev Login] Creating/updating user with openId:", testOpenId);
+        console.log(
+          "[Dev Login] Creating/updating user with openId:",
+          testOpenId
+        );
 
         // Upsert user with explicit admin role
         await db.upsertUser({
@@ -121,7 +137,9 @@ export function registerOAuthRoutes(app: Express) {
           lastSignedIn: new Date(),
         });
 
-        console.log("[Dev Login] User ensured as admin, generating session token...");
+        console.log(
+          "[Dev Login] User ensured as admin, generating session token..."
+        );
 
         const sessionToken = await sdk.createSessionToken(testOpenId, {
           name: testName,
@@ -131,13 +149,18 @@ export function registerOAuthRoutes(app: Express) {
         console.log("[Dev Login] Session token created, setting cookie...");
 
         const cookieOptions = getSessionCookieOptions(req);
-        res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        res.cookie(COOKIE_NAME, sessionToken, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
+        });
 
         console.log("[Dev Login] Login successful, redirecting to admin...");
         res.redirect(302, "/admin");
       } catch (error) {
         console.error("[Dev Login] Failed:", error);
-        res.status(500).json({ error: "Dev login failed", details: String(error) });
+        res
+          .status(500)
+          .json({ error: "Dev login failed", details: String(error) });
       }
     });
 
@@ -158,7 +181,12 @@ export function registerOAuthRoutes(app: Express) {
       const adminEmail = ENV.adminEmail;
       const adminPassword = ENV.adminPassword;
 
-      console.log("[Admin Login] Received email:", JSON.stringify(email), "expected:", JSON.stringify(adminEmail));
+      console.log(
+        "[Admin Login] Received email:",
+        JSON.stringify(email),
+        "expected:",
+        JSON.stringify(adminEmail)
+      );
 
       if (!adminEmail || !adminPassword) {
         console.error("[Admin Login] Admin credentials are not configured");
@@ -166,7 +194,9 @@ export function registerOAuthRoutes(app: Express) {
       }
 
       if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+        return res
+          .status(400)
+          .json({ error: "Email and password are required" });
       }
 
       if (email !== adminEmail) {
@@ -194,10 +224,14 @@ export function registerOAuthRoutes(app: Express) {
       try {
         console.log("[Admin Login] user.passwordHash:", !!user.passwordHash);
         if (!user.passwordHash) {
-          console.log("[Admin Login] No stored admin password hash, writing configured admin hash");
+          console.log(
+            "[Admin Login] No stored admin password hash, writing configured admin hash"
+          );
           user = await ensureDefaultAdminAccount();
           if (!user?.passwordHash) {
-            console.error("[Admin Login] Failed to reload admin user after writing password hash");
+            console.error(
+              "[Admin Login] Failed to reload admin user after writing password hash"
+            );
             return res.status(500).json({ error: "Internal server error" });
           }
         }
@@ -208,7 +242,9 @@ export function registerOAuthRoutes(app: Express) {
         }
 
         if (!passwordMatch && password === ENV.adminPassword) {
-          console.log("[Admin Login] Admin password fallback matched configured ADMIN_PASSWORD, refreshing stored hash");
+          console.log(
+            "[Admin Login] Admin password fallback matched configured ADMIN_PASSWORD, refreshing stored hash"
+          );
           const passwordHash = await bcrypt.hash(password, 10);
           await db.upsertUser({
             openId: user.openId,
@@ -239,7 +275,10 @@ export function registerOAuthRoutes(app: Express) {
       });
 
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
 
       res.json({ success: true, message: "Admin logged in successfully" });
     } catch (error) {
@@ -249,34 +288,43 @@ export function registerOAuthRoutes(app: Express) {
   });
 
   // Admin forgot password
-  app.post("/api/admin-forgot-password", async (req: Request, res: Response) => {
-    try {
-      const { email } = req.body;
-      const adminEmail = ENV.adminEmail;
-      if (!email) {
-        return res.status(400).json({ error: "Email is required" });
+  app.post(
+    "/api/admin-forgot-password",
+    async (req: Request, res: Response) => {
+      try {
+        const { email } = req.body;
+        const adminEmail = ENV.adminEmail;
+        if (!email) {
+          return res.status(400).json({ error: "Email is required" });
+        }
+
+        if (email !== adminEmail) {
+          return res.status(403).json({ error: "Access Denied" });
+        }
+
+        const resetToken = randomBytes(24).toString("hex");
+        const resetExpires = Date.now() + 3600000; // 1 hour
+        adminResetTokens.set(email, {
+          token: resetToken,
+          expiresAt: resetExpires,
+        });
+
+        const protocol = req.protocol || "http";
+        const host = req.get("host") ?? "localhost:3000";
+        const resetUrl = `${protocol}://${host}/api/admin-reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+        console.log(`[Admin Forgot Password] Reset URL: ${resetUrl}`);
+
+        res.json({
+          success: true,
+          message: "Reset instructions logged to console",
+        });
+      } catch (error) {
+        console.error("[Admin Forgot Password] Failed:", error);
+        res.status(500).json({ error: "Internal server error" });
       }
-
-      if (email !== adminEmail) {
-        return res.status(403).json({ error: "Access Denied" });
-      }
-
-      const resetToken = randomBytes(24).toString("hex");
-      const resetExpires = Date.now() + 3600000; // 1 hour
-      adminResetTokens.set(email, { token: resetToken, expiresAt: resetExpires });
-
-      const protocol = req.protocol || "http";
-      const host = req.get("host") ?? "localhost:3000";
-      const resetUrl = `${protocol}://${host}/api/admin-reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
-
-      console.log(`[Admin Forgot Password] Reset URL: ${resetUrl}`);
-
-      res.json({ success: true, message: "Reset instructions logged to console" });
-    } catch (error) {
-      console.error("[Admin Forgot Password] Failed:", error);
-      res.status(500).json({ error: "Internal server error" });
     }
-  });
+  );
 
   // Admin reset password
   app.post("/api/admin-reset-password", async (req: Request, res: Response) => {
@@ -284,7 +332,9 @@ export function registerOAuthRoutes(app: Express) {
       const { token, email, newPassword } = req.body;
       const adminEmail = ENV.adminEmail;
       if (!token || !email || !newPassword) {
-        return res.status(400).json({ error: "Token, email, and new password are required" });
+        return res
+          .status(400)
+          .json({ error: "Token, email, and new password are required" });
       }
 
       if (email !== adminEmail) {
@@ -292,8 +342,14 @@ export function registerOAuthRoutes(app: Express) {
       }
 
       const tokenEntry = adminResetTokens.get(email);
-      if (!tokenEntry || tokenEntry.token !== token || tokenEntry.expiresAt < Date.now()) {
-        return res.status(403).json({ error: "Invalid or expired reset token" });
+      if (
+        !tokenEntry ||
+        tokenEntry.token !== token ||
+        tokenEntry.expiresAt < Date.now()
+      ) {
+        return res
+          .status(403)
+          .json({ error: "Invalid or expired reset token" });
       }
 
       adminResetTokens.delete(email);

@@ -13,8 +13,11 @@ export default function BreakingNewsTicker() {
   if (breakingArticles.length === 0) return null;
 
   const tickerText = breakingArticles
-    .map((item) => {
-      const title = isNepali && item.article.titleNe ? item.article.titleNe : item.article.title;
+    .map(item => {
+      const title =
+        isNepali && item.article.titleNe
+          ? item.article.titleNe
+          : item.article.title;
       return `${title}`;
     })
     .join("   •   ");
@@ -26,7 +29,9 @@ export default function BreakingNewsTicker() {
           {/* Label */}
           <div className="flex items-center gap-1.5 shrink-0 pr-3 border-r border-white/30 mr-3">
             <Zap className="w-3.5 h-3.5 fill-current" />
-            <span className={`text-xs font-bold uppercase tracking-wide ${isNepali ? "font-nepali" : ""}`}>
+            <span
+              className={`text-xs font-bold uppercase tracking-wide ${isNepali ? "font-nepali" : ""}`}
+            >
               {t("Breaking", "ब्रेकिङ")}
             </span>
           </div>
@@ -40,7 +45,9 @@ export default function BreakingNewsTicker() {
                     href={`/article/${item.article.slug}`}
                     className="hover:underline cursor-pointer"
                   >
-                    {isNepali && item.article.titleNe ? item.article.titleNe : item.article.title}
+                    {isNepali && item.article.titleNe
+                      ? item.article.titleNe
+                      : item.article.title}
                   </Link>
                   {idx < breakingArticles.length - 1 && (
                     <span className="mx-6 opacity-60">•</span>

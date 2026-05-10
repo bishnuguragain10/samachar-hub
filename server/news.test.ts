@@ -144,7 +144,10 @@ describe("newsletter", () => {
     const caller = appRouter.createCaller(makePublicCtx());
     // This will fail if DB is unavailable but validates the input schema
     try {
-      await caller.newsletter.subscribe({ email: "test@example.com", name: "Test User" });
+      await caller.newsletter.subscribe({
+        email: "test@example.com",
+        name: "Test User",
+      });
     } catch (e: unknown) {
       // DB may not be available in test env; we just verify it doesn't throw a validation error
       const msg = (e as Error).message ?? "";

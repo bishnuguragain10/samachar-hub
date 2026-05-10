@@ -5,7 +5,7 @@ export default function LoginPage() {
   useEffect(() => {
     // Redirect to OAuth login or show message
     const loginUrl = getLoginUrl();
-    if (loginUrl !== '/api/dev-login') {
+    if (loginUrl !== "/api/dev-login") {
       window.location.href = loginUrl;
     } else {
       // In production, no dev login

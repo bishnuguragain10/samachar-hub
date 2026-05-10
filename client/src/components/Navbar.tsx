@@ -29,7 +29,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
@@ -40,7 +39,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  
+
   // Fetch dynamic navigation categories from backend
   const { data: categoriesData } = trpc.categories.navList.useQuery();
   const categories = categoriesData ?? [];
@@ -77,18 +76,20 @@ export default function Navbar() {
             <div className="w-10 h-10 bg-gradient-to-br from-news-red to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="font-bold text-xl hidden sm:block text-gray-900 group-hover:text-news-red transition-colors">Samachar Hub</span>
+            <span className="font-bold text-xl hidden sm:block text-gray-900 group-hover:text-news-red transition-colors">
+              Samachar Hub
+            </span>
           </Link>
 
           {/* Desktop category nav */}
           <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-            {categories.slice(0, 6).map((cat) => (
+            {categories.slice(0, 6).map(cat => (
               <Link
                 key={cat.id}
                 href={`/category/${cat.slug}`}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                  location === `/category/${cat.slug}` 
-                    ? "bg-news-red text-white shadow-sm" 
+                  location === `/category/${cat.slug}`
+                    ? "bg-news-red text-white shadow-sm"
                     : "text-gray-700 hover:shadow-sm"
                 } ${language === "ne" ? "font-nepali" : ""}`}
               >
@@ -98,15 +99,28 @@ export default function Navbar() {
             {categories.length > 6 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-news-red transition-all duration-200 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-news-red transition-all duration-200 gap-1"
+                  >
                     {t("More", "थप")} <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="border-gray-200 shadow-lg">
-                  {categories.slice(6).map((cat) => (
-                    <DropdownMenuItem key={cat.id} asChild className="hover:bg-gray-100 hover:text-news-red">
-                      <Link href={`/category/${cat.slug}`} className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}>
-                        {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
+                  {categories.slice(6).map(cat => (
+                    <DropdownMenuItem
+                      key={cat.id}
+                      asChild
+                      className="hover:bg-gray-100 hover:text-news-red"
+                    >
+                      <Link
+                        href={`/category/${cat.slug}`}
+                        className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}
+                      >
+                        {language === "ne" && cat.nameNe
+                          ? cat.nameNe
+                          : cat.name}
                       </Link>
                     </DropdownMenuItem>
                   ))}
@@ -119,12 +133,15 @@ export default function Navbar() {
           <div className="flex items-center gap-2 shrink-0">
             {/* Search */}
             {searchOpen ? (
-              <form onSubmit={handleSearch} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 shadow-sm">
+              <form
+                onSubmit={handleSearch}
+                className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 shadow-sm"
+              >
                 <Search className="w-4 h-4 text-gray-400" />
                 <Input
                   ref={searchRef}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
                   className="w-32 sm:w-48 h-auto border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
@@ -170,26 +187,39 @@ export default function Navbar() {
               onClick={toggleTheme}
               title={t("Toggle theme", "विषय परिवर्तन गर्नुहोस्")}
             >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
             </Button>
 
             {/* Auth */}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 transition-colors">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 transition-colors"
+                  >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
                       {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 border-gray-200 shadow-lg">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 border-gray-200 shadow-lg"
+                >
                   <div className="flex items-center justify-start gap-3 p-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
                       {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-sm text-gray-900">{user?.name || "User"}</p>
+                      <p className="font-medium text-sm text-gray-900">
+                        {user?.name || "User"}
+                      </p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
                     </div>
                   </div>
@@ -197,7 +227,10 @@ export default function Navbar() {
                   {user?.role === "admin" && (
                     <>
                       <DropdownMenuItem asChild className="hover:bg-gray-100">
-                        <Link href="/admin" className="flex items-center gap-2 text-sm">
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-2 text-sm"
+                        >
                           <Settings className="w-4 h-4" />
                           {t("Admin Panel", "एडमिन प्यानेल")}
                         </Link>
@@ -206,7 +239,10 @@ export default function Navbar() {
                     </>
                   )}
                   <DropdownMenuItem asChild className="hover:bg-gray-100">
-                    <Link href="/bookmarks" className="flex items-center gap-2 text-sm">
+                    <Link
+                      href="/bookmarks"
+                      className="flex items-center gap-2 text-sm"
+                    >
                       <Bookmark className="w-4 h-4" />
                       {t("Bookmarks", "बुकमार्कहरू")}
                     </Link>
@@ -242,7 +278,11 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(!mobileOpen)}
                   aria-label="Toggle menu"
                 >
-                  {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                  {mobileOpen ? (
+                    <X className="w-4 h-4" />
+                  ) : (
+                    <Menu className="w-4 h-4" />
+                  )}
                 </Button>
               </>
             )}
@@ -255,28 +295,31 @@ export default function Navbar() {
         <div className="lg:hidden border-t border-gray-200 bg-white shadow-lg">
           <div className="container mx-auto px-4 py-6 space-y-6">
             {/* Mobile search */}
-            <form onSubmit={handleSearch} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+            <form
+              onSubmit={handleSearch}
+              className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200"
+            >
               <Search className="w-4 h-4 text-gray-400" />
               <Input
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
                 className="flex-1 h-auto border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </form>
-            
+
             {/* Mobile categories */}
             <div className="space-y-1">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 {t("Categories", "श्रेणीहरू")}
               </h3>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <Link
                   key={cat.id}
                   href={`/category/${cat.slug}`}
                   className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                    location === `/category/${cat.slug}` 
-                      ? "bg-news-red text-white shadow-sm" 
+                    location === `/category/${cat.slug}`
+                      ? "bg-news-red text-white shadow-sm"
                       : "text-gray-700"
                   } ${language === "ne" ? "font-nepali" : ""}`}
                   onClick={() => setMobileOpen(false)}

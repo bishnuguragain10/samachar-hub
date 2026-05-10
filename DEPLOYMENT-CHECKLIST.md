@@ -1,6 +1,7 @@
 # Railway Deployment Checklist
 
 ## Phase 1: Create Railway Account ✅
+
 - [ ] Opened railway.app website
 - [ ] Clicked Sign Up/Get Started
 - [ ] Chose GitHub sign up
@@ -10,6 +11,7 @@
 - [ ] Saw Railway dashboard
 
 ## Phase 2: Set Up Database ✅
+
 - [ ] Clicked "New Project"
 - [ ] Chose "Provision MySQL"
 - [ ] Named database "samachar-db"
@@ -17,6 +19,7 @@
 - [ ] Copied DATABASE_URL from Connect tab
 
 ## Phase 3: Deploy Application ✅
+
 - [ ] Clicked "New Project" again
 - [ ] Chose "Deploy from GitHub repo"
 - [ ] Connected GitHub account
@@ -25,6 +28,7 @@
 - [ ] Waited for initial deployment
 
 ## Phase 4: Configure Environment Variables ✅
+
 - [ ] Clicked on app project (not database)
 - [ ] Went to Variables tab
 - [ ] Added DATABASE_URL variable
@@ -40,11 +44,13 @@
 - [ ] Triggered redeploy
 
 ## Phase 5: Set Up Domain ✅
+
 - [ ] Went to Settings → Domains
 - [ ] Copied Railway domain (your-project-name.up.railway.app)
 - [ ] (Optional) Added custom domain
 
 ## Phase 6: Test Live Site ✅
+
 - [ ] Visited Railway domain
 - [ ] Homepage loaded
 - [ ] Tested navigation
@@ -53,6 +59,7 @@
 - [ ] Tested search functionality
 
 ## Phase 7: Update SEO Files ✅
+
 - [ ] Ran update-seo.bat script
 - [ ] Entered Railway domain when prompted
 - [ ] Ran pnpm build
@@ -60,6 +67,7 @@
 - [ ] Waited for Railway auto-redeploy
 
 ## Phase 8: Google Search Console ✅
+
 - [ ] Created Google Search Console account
 - [ ] Added property with Railway domain
 - [ ] Downloaded verification file
@@ -68,16 +76,19 @@
 - [ ] Submitted sitemap.xml
 
 ## Phase 9: Share with Friends ✅
+
 - [ ] Final testing of all features
 - [ ] Shared Railway domain URL
 - [ ] Told friends about admin access
 
 ## Notes:
-- Your Railway domain: __________________________
-- DATABASE_URL: __________________________
-- Admin login credentials: __________________________
+
+- Your Railway domain: \***\*\*\*\*\*\*\***\_\_\***\*\*\*\*\*\*\***
+- DATABASE_URL: \***\*\*\*\*\*\*\***\_\_\***\*\*\*\*\*\*\***
+- Admin login credentials: \***\*\*\*\*\*\*\***\_\_\***\*\*\*\*\*\*\***
 
 ## Troubleshooting Checklist:
+
 - [ ] Check Railway deployment logs if issues occur
 - [ ] Verify all environment variables are correct
 - [ ] Ensure DATABASE_URL format is correct

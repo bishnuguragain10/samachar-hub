@@ -211,12 +211,8 @@
           "name": "articles_categoryId_categories_id_fk",
           "tableFrom": "articles",
           "tableTo": "categories",
-          "columnsFrom": [
-            "categoryId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["categoryId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -224,12 +220,8 @@
           "name": "articles_authorId_users_id_fk",
           "tableFrom": "articles",
           "tableTo": "users",
-          "columnsFrom": [
-            "authorId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["authorId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -237,17 +229,13 @@
       "compositePrimaryKeys": {
         "articles_id": {
           "name": "articles_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "articles_slug_unique": {
           "name": "articles_slug_unique",
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "checkConstraint": {}
@@ -291,12 +279,8 @@
           "name": "bookmarks_userId_users_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -304,12 +288,8 @@
           "name": "bookmarks_articleId_articles_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "articles",
-          "columnsFrom": [
-            "articleId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["articleId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -317,9 +297,7 @@
       "compositePrimaryKeys": {
         "bookmarks_id": {
           "name": "bookmarks_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -400,17 +378,13 @@
       "compositePrimaryKeys": {
         "categories_id": {
           "name": "categories_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "categories_slug_unique": {
           "name": "categories_slug_unique",
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "checkConstraint": {}
@@ -483,12 +457,8 @@
           "name": "comments_articleId_articles_id_fk",
           "tableFrom": "comments",
           "tableTo": "articles",
-          "columnsFrom": [
-            "articleId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["articleId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -496,12 +466,8 @@
           "name": "comments_userId_users_id_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -509,9 +475,7 @@
       "compositePrimaryKeys": {
         "comments_id": {
           "name": "comments_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -563,17 +527,13 @@
       "compositePrimaryKeys": {
         "newsletter_subscribers_id": {
           "name": "newsletter_subscribers_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "newsletter_subscribers_email_unique": {
           "name": "newsletter_subscribers_email_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraint": {}
@@ -669,17 +629,13 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "users_openId_unique": {
           "name": "users_openId_unique",
-          "columns": [
-            "openId"
-          ]
+          "columns": ["openId"]
         }
       },
       "checkConstraint": {}

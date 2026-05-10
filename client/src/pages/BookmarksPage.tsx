@@ -28,11 +28,18 @@ export default function BookmarksPage() {
     return (
       <div className="container py-16 text-center">
         <Bookmark className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-        <h1 className={`text-2xl font-bold mb-2 ${isNepali ? "font-nepali" : ""}`}>
+        <h1
+          className={`text-2xl font-bold mb-2 ${isNepali ? "font-nepali" : ""}`}
+        >
           {t("Sign in to view bookmarks", "बुकमार्क हेर्न साइन इन गर्नुहोस्")}
         </h1>
-        <p className={`text-muted-foreground mb-6 ${isNepali ? "font-nepali" : ""}`}>
-          {t("Save articles to read later", "पछि पढ्नको लागि लेखहरू सेभ गर्नुहोस्")}
+        <p
+          className={`text-muted-foreground mb-6 ${isNepali ? "font-nepali" : ""}`}
+        >
+          {t(
+            "Save articles to read later",
+            "पछि पढ्नको लागि लेखहरू सेभ गर्नुहोस्"
+          )}
         </p>
         <Button
           className="bg-news-red hover:bg-news-red/90 text-white gap-2"
@@ -55,13 +62,18 @@ export default function BookmarksPage() {
           <h1 className={`text-2xl font-bold ${isNepali ? "font-nepali" : ""}`}>
             {t("My Bookmarks", "मेरा बुकमार्कहरू")}
           </h1>
-          <span className="text-sm text-muted-foreground ml-2">({bookmarks.length})</span>
+          <span className="text-sm text-muted-foreground ml-2">
+            ({bookmarks.length})
+          </span>
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border">
+              <div
+                key={i}
+                className="rounded-xl overflow-hidden border border-border"
+              >
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-4 space-y-2">
                   <Skeleton className="h-4 w-full" />
@@ -77,7 +89,10 @@ export default function BookmarksPage() {
               {t("No bookmarks yet", "अहिलेसम्म कुनै बुकमार्क छैन")}
             </p>
             <p className={`text-sm mt-2 ${isNepali ? "font-nepali" : ""}`}>
-              {t("Save articles to read later by clicking the bookmark icon", "बुकमार्क आइकनमा क्लिक गरेर लेखहरू सेभ गर्नुहोस्")}
+              {t(
+                "Save articles to read later by clicking the bookmark icon",
+                "बुकमार्क आइकनमा क्लिक गरेर लेखहरू सेभ गर्नुहोस्"
+              )}
             </p>
             <Link href="/">
               <Button variant="outline" className="mt-6">
@@ -87,7 +102,7 @@ export default function BookmarksPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {bookmarks.map((item) =>
+            {bookmarks.map(item =>
               item.article ? (
                 <NewsCard
                   key={item.bookmark.id}

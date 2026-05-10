@@ -40,13 +40,19 @@ interface NewsCardProps {
   showExcerpt?: boolean;
 }
 
-export default function NewsCard({ data, variant = "default", showExcerpt = false }: NewsCardProps) {
+export default function NewsCard({
+  data,
+  variant = "default",
+  showExcerpt = false,
+}: NewsCardProps) {
   const { t, isNepali } = useLanguage();
   const { article, category, author } = data;
 
   const title = isNepali && article.titleNe ? article.titleNe : article.title;
-  const excerpt = isNepali && article.excerptNe ? article.excerptNe : article.excerpt;
-  const categoryName = isNepali && category?.nameNe ? category.nameNe : category?.name;
+  const excerpt =
+    isNepali && article.excerptNe ? article.excerptNe : article.excerpt;
+  const categoryName =
+    isNepali && category?.nameNe ? category.nameNe : category?.name;
   const timeAgo = article.publishedAt
     ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })
     : formatDistanceToNow(new Date(article.createdAt), { addSuffix: true });
@@ -79,17 +85,24 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
               {category && (
                 <Badge
                   className="text-xs font-semibold px-2 py-1"
-                  style={{ 
-                    backgroundColor: category.color ? category.color + "20" : "#f3f4f6", 
-                    color: category.color || "#374151", 
-                    border: category.color ? `1px solid ${category.color}40` : "1px solid #d1d5db" 
+                  style={{
+                    backgroundColor: category.color
+                      ? category.color + "20"
+                      : "#f3f4f6",
+                    color: category.color || "#374151",
+                    border: category.color
+                      ? `1px solid ${category.color}40`
+                      : "1px solid #d1d5db",
                   }}
                 >
                   {categoryName}
                 </Badge>
               )}
               {article.isSponsored && (
-                <Badge variant="outline" className="text-xs text-white border-white/30 bg-white/10 backdrop-blur-sm">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-white border-white/30 bg-white/10 backdrop-blur-sm"
+                >
                   {t("Sponsored", "प्रायोजित")}
                 </Badge>
               )}
@@ -102,12 +115,16 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
               {title}
             </h2>
             {excerpt && (
-              <p className={`text-white/80 text-sm sm:text-base line-clamp-3 mb-4 ${isNepali ? "font-nepali" : ""}`}>
+              <p
+                className={`text-white/80 text-sm sm:text-base line-clamp-3 mb-4 ${isNepali ? "font-nepali" : ""}`}
+              >
                 {excerpt}
               </p>
             )}
             <div className="flex items-center gap-4 text-white/70 text-xs sm:text-sm">
-              {author?.name && <span className="font-medium">{author.name}</span>}
+              {author?.name && (
+                <span className="font-medium">{author.name}</span>
+              )}
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {timeAgo}
@@ -125,7 +142,10 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
 
   if (variant === "horizontal") {
     return (
-      <Link href={`/article/${article.slug}`} className="group flex gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <Link
+        href={`/article/${article.slug}`}
+        className="group flex gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+      >
         <div className="w-24 h-16 sm:w-28 sm:h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
           {article.coverImage ? (
             <img
@@ -142,9 +162,11 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
           {category && (
             <span
               className={`text-xs font-semibold mb-2 inline-block px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
-              style={{ 
-                backgroundColor: category.color ? category.color + "15" : "#f3f4f6", 
-                color: category.color || "#dc2626" 
+              style={{
+                backgroundColor: category.color
+                  ? category.color + "15"
+                  : "#f3f4f6",
+                color: category.color || "#dc2626",
               }}
             >
               {categoryName}
@@ -174,7 +196,10 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
 
   if (variant === "compact") {
     return (
-      <Link href={`/article/${article.slug}`} className="group flex items-start gap-2 py-2">
+      <Link
+        href={`/article/${article.slug}`}
+        className="group flex items-start gap-2 py-2"
+      >
         <div className="w-1.5 h-1.5 rounded-full bg-news-red mt-2 shrink-0" />
         <div className="flex-1 min-w-0">
           <h4
@@ -219,16 +244,21 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
             {category && (
               <span
                 className={`text-xs font-semibold px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
-                style={{ 
-                  backgroundColor: category.color ? category.color + "15" : "#f3f4f6", 
-                  color: category.color || "#dc2626" 
+                style={{
+                  backgroundColor: category.color
+                    ? category.color + "15"
+                    : "#f3f4f6",
+                  color: category.color || "#dc2626",
                 }}
               >
                 {categoryName}
               </span>
             )}
             {article.isSponsored && (
-              <Badge variant="outline" className="text-xs font-semibold px-2 py-1 border-gray-300">
+              <Badge
+                variant="outline"
+                className="text-xs font-semibold px-2 py-1 border-gray-300"
+              >
                 {t("Sponsored", "प्रायोजित")}
               </Badge>
             )}
@@ -241,7 +271,9 @@ export default function NewsCard({ data, variant = "default", showExcerpt = fals
             {title}
           </h3>
           {showExcerpt && excerpt && (
-            <p className={`text-sm text-gray-600 line-clamp-2 mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <p
+              className={`text-sm text-gray-600 line-clamp-2 mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {excerpt}
             </p>
           )}

@@ -7,7 +7,7 @@ export const getLoginUrl = () => {
 
   // If OAuth is not configured, fall back to dev login
   if (!oauthPortalUrl || !appId) {
-    return '/api/dev-login';
+    return "/api/dev-login";
   }
 
   const redirectUri = `${window.location.origin}/api/oauth/callback`;

@@ -14,7 +14,7 @@ const LanguageContext = createContext<LanguageContextType>({
   language: "en",
   toggleLanguage: () => {},
   setLanguage: () => {},
-  t: (en) => en,
+  t: en => en,
   isNepali: false,
 });
 
@@ -34,7 +34,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [language]);
 
   const toggleLanguage = () => {
-    setLanguageState((prev) => (prev === "en" ? "ne" : "en"));
+    setLanguageState(prev => (prev === "en" ? "ne" : "en"));
   };
 
   const setLanguage = (lang: Language) => {
@@ -44,7 +44,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (en: string, ne: string) => (language === "ne" ? ne : en);
 
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, setLanguage, t, isNepali: language === "ne" }}>
+    <LanguageContext.Provider
+      value={{
+        language,
+        toggleLanguage,
+        setLanguage,
+        t,
+        isNepali: language === "ne",
+      }}
+    >
       {children}
     </LanguageContext.Provider>
   );

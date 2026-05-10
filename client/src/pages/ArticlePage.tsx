@@ -34,7 +34,7 @@ import { formatDistanceToNow, format } from "date-fns";
 
 export default function ArticlePage() {
   console.log("[ArticlePage] Rendering");
-  
+
   const { slug } = useParams<{ slug: string }>();
   const { t, isNepali } = useLanguage();
   const { user, isAuthenticated } = useAuth();
@@ -54,28 +54,27 @@ export default function ArticlePage() {
     { enabled: articleId > 0 }
   );
 
-  const { data: commentsData, refetch: refetchComments } = trpc.comments.list.useQuery(
-    { articleId },
-    { enabled: articleId > 0 }
-  );
+  const { data: commentsData, refetch: refetchComments } =
+    trpc.comments.list.useQuery({ articleId }, { enabled: articleId > 0 });
 
-  const { data: isBookmarkedData, refetch: refetchBookmark } = trpc.bookmarks.check.useQuery(
-    { articleId },
-    { enabled: articleId > 0 && isAuthenticated }
-  );
+  const { data: isBookmarkedData, refetch: refetchBookmark } =
+    trpc.bookmarks.check.useQuery(
+      { articleId },
+      { enabled: articleId > 0 && isAuthenticated }
+    );
 
   // Mutations - always call in same order
   const addBookmark = trpc.bookmarks.add.useMutation({
-    onSuccess: () => { 
-      refetchBookmark(); 
-      toast.success(t("Bookmarked!", "बुकमार्क गरियो!")); 
+    onSuccess: () => {
+      refetchBookmark();
+      toast.success(t("Bookmarked!", "बुकमार्क गरियो!"));
     },
   });
 
   const removeBookmark = trpc.bookmarks.remove.useMutation({
-    onSuccess: () => { 
-      refetchBookmark(); 
-      toast.success(t("Bookmark removed", "बुकमार्क हटाइयो")); 
+    onSuccess: () => {
+      refetchBookmark();
+      toast.success(t("Bookmark removed", "बुकमार्क हटाइयो"));
     },
   });
 
@@ -83,9 +82,11 @@ export default function ArticlePage() {
     onSuccess: () => {
       refetchComments();
       setCommentText("");
-      toast.success(t("Comment submitted for review", "टिप्पणी समीक्षाको लागि पेश गरियो"));
+      toast.success(
+        t("Comment submitted for review", "टिप्पणी समीक्षाको लागि पेश गरियो")
+      );
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   // All state - always call in same order
@@ -94,7 +95,14 @@ export default function ArticlePage() {
   const [guestEmail, setGuestEmail] = useState("");
   const [showSummary, setShowSummary] = useState(false);
 
-  console.log("[ArticlePage] Data loaded:", !!data, "isLoading:", isLoading, "articleId:", articleId);
+  console.log(
+    "[ArticlePage] Data loaded:",
+    !!data,
+    "isLoading:",
+    isLoading,
+    "articleId:",
+    articleId
+  );
 
   // Helper functions - MUST be defined before any early returns
   const getYouTubeId = (url: string | null | undefined) => {
@@ -151,7 +159,9 @@ export default function ArticlePage() {
         <Skeleton className="h-10 w-3/4 mb-4" />
         <Skeleton className="aspect-[16/9] w-full rounded-xl mb-6" />
         <div className="space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-4 w-full" />
+          ))}
         </div>
       </div>
     );
@@ -160,7 +170,9 @@ export default function ArticlePage() {
   if (error || !data) {
     return (
       <div className="container py-16 text-center">
-        <h1 className="text-2xl font-bold mb-2">{t("Article not found", "लेख फेला परेन")}</h1>
+        <h1 className="text-2xl font-bold mb-2">
+          {t("Article not found", "लेख फेला परेन")}
+        </h1>
         <Link href="/">
           <Button variant="outline" className="mt-4 gap-2">
             <ChevronLeft className="w-4 h-4" />
@@ -172,10 +184,14 @@ export default function ArticlePage() {
   }
 
   if (!data?.article) {
-    console.error("[ArticlePage] ERROR: article data missing after loading completed");
+    console.error(
+      "[ArticlePage] ERROR: article data missing after loading completed"
+    );
     return (
       <div className="container py-16 text-center">
-        <h1 className="text-2xl font-bold mb-2">{t("Article not found", "लेख फेला परेन")}</h1>
+        <h1 className="text-2xl font-bold mb-2">
+          {t("Article not found", "लेख फेला परेन")}
+        </h1>
         <Link href="/">
           <Button variant="outline" className="mt-4 gap-2">
             <ChevronLeft className="w-4 h-4" />
@@ -188,17 +204,27 @@ export default function ArticlePage() {
 
   const { article, category, author } = data;
   const title = isNepali && article.titleNe ? article.titleNe : article.title;
-  const excerpt = isNepali && article.excerptNe ? article.excerptNe : (article.excerpt ?? "");
-  const content = (isNepali && article.contentNe ? article.contentNe : article.content) ?? "";
-  const summary = isNepali && article.aiSummaryNe ? article.aiSummaryNe : (article.aiSummary ?? null);
-  const categoryName = isNepali && category?.nameNe ? category.nameNe : (category?.name ?? "");
-  const publishedDate = article.publishedAt ? new Date(article.publishedAt) : new Date(article.createdAt);
+  const excerpt =
+    isNepali && article.excerptNe ? article.excerptNe : (article.excerpt ?? "");
+  const content =
+    (isNepali && article.contentNe ? article.contentNe : article.content) ?? "";
+  const summary =
+    isNepali && article.aiSummaryNe
+      ? article.aiSummaryNe
+      : (article.aiSummary ?? null);
+  const categoryName =
+    isNepali && category?.nameNe ? category.nameNe : (category?.name ?? "");
+  const publishedDate = article.publishedAt
+    ? new Date(article.publishedAt)
+    : new Date(article.createdAt);
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareTitle = encodeURIComponent(article.title ?? "");
 
   // Safely extract YouTube ID
-  const youtubeId = article.youtubeUrl ? getYouTubeId(article.youtubeUrl) : null;
+  const youtubeId = article.youtubeUrl
+    ? getYouTubeId(article.youtubeUrl)
+    : null;
 
   return (
     <div className="min-h-screen">
@@ -211,8 +237,13 @@ export default function ArticlePage() {
           {category && (
             <>
               <span>/</span>
-              <Link href={`/category/${category.slug}`} className="hover:text-primary transition-colors">
-                <span className={isNepali ? "font-nepali" : ""}>{categoryName}</span>
+              <Link
+                href={`/category/${category.slug}`}
+                className="hover:text-primary transition-colors"
+              >
+                <span className={isNepali ? "font-nepali" : ""}>
+                  {categoryName}
+                </span>
               </Link>
             </>
           )}
@@ -234,7 +265,10 @@ export default function ArticlePage() {
               {category && (
                 <Badge
                   variant="secondary"
-                  style={{ backgroundColor: (category.color ?? "#dc2626") + "20", color: category.color ?? undefined }}
+                  style={{
+                    backgroundColor: (category.color ?? "#dc2626") + "20",
+                    color: category.color ?? undefined,
+                  }}
                   className={`font-semibold ${isNepali ? "font-nepali" : ""}`}
                 >
                   {categoryName}
@@ -248,7 +282,9 @@ export default function ArticlePage() {
             </div>
 
             {/* Title */}
-            <h1 className={`text-2xl sm:text-3xl font-bold leading-tight mb-4 ${isNepali ? "font-nepali" : ""}`}>
+            <h1
+              className={`text-2xl sm:text-3xl font-bold leading-tight mb-4 ${isNepali ? "font-nepali" : ""}`}
+            >
               {title}
             </h1>
 
@@ -261,7 +297,9 @@ export default function ArticlePage() {
                       {author.name[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-foreground">{author.name}</span>
+                  <span className="font-medium text-foreground">
+                    {author.name}
+                  </span>
                 </div>
               )}
               <span className="flex items-center gap-1">
@@ -294,11 +332,16 @@ export default function ArticlePage() {
             {content ? (
               <div
                 className={`article-content ${isNepali ? "font-nepali" : ""}`}
-                dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br/>") }}
+                dangerouslySetInnerHTML={{
+                  __html: content.replace(/\n/g, "<br/>"),
+                }}
               />
             ) : (
               <div className="rounded-xl border border-border bg-muted/30 p-6 text-center text-muted-foreground">
-                {t("No content available for this article.", "यस लेखको लागि कुनै सामग्री उपलब्ध छैन।")}
+                {t(
+                  "No content available for this article.",
+                  "यस लेखको लागि कुनै सामग्री उपलब्ध छैन।"
+                )}
               </div>
             )}
           </article>

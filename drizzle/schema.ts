@@ -1,4 +1,12 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  boolean,
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -49,7 +57,9 @@ export const articles = mysqlTable("articles", {
   coverImageKey: text("coverImageKey"),
   categoryId: int("categoryId"),
   authorId: int("authorId"),
-  status: mysqlEnum("status", ["draft", "published", "scheduled"]).default("draft").notNull(),
+  status: mysqlEnum("status", ["draft", "published", "scheduled"])
+    .default("draft")
+    .notNull(),
   isBreaking: boolean("isBreaking").default(false).notNull(),
   isFeatured: boolean("isFeatured").default(false).notNull(),
   isSponsored: boolean("isSponsored").default(false).notNull(),
@@ -78,7 +88,9 @@ export const comments = mysqlTable("comments", {
   guestName: varchar("guestName", { length: 100 }),
   guestEmail: varchar("guestEmail", { length: 320 }),
   content: text("content").notNull(),
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"])
+    .default("pending")
+    .notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

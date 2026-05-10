@@ -94,7 +94,9 @@ function Router() {
       <Route path="/search">{() => <SearchWithLayout />}</Route>
       <Route path="/bookmarks">{() => <BookmarksWithLayout />}</Route>
       <Route path="/login">{() => <LoginWithLayout />}</Route>
-      <Route path="/hidden-admin-access">{() => <HiddenAdminAccessPage />}</Route>
+      <Route path="/hidden-admin-access">
+        {() => <HiddenAdminAccessPage />}
+      </Route>
       <Route path="/admin/login">{() => <AdminLoginWithLayout />}</Route>
       <Route path="/admin">{() => <AdminWithLayout />}</Route>
       <Route path="/admin/:rest*">{() => <AdminWithLayout />}</Route>
