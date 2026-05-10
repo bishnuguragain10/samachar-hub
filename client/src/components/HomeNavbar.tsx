@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export default function HomeNavbar() {
   const { t, isNepali } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const [pathname] = useLocation();
 
   const menuItems = [
     { id: "home", label: "Home", labelNe: "होम", href: "/" },
@@ -44,13 +44,13 @@ export default function HomeNavbar() {
   ];
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50 h-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+    <nav className="bg-white shadow-sm sticky top-0 z-50 h-16 relative">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 h-full flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0">
           <Link
             href="/"
-            className="text-2xl font-bold text-news-red hover:text-news-red/90 transition-colors"
+            className="text-xl sm:text-2xl font-bold text-news-red hover:text-news-red/90 transition-colors"
           >
             Samachar Hub
           </Link>
@@ -58,16 +58,16 @@ export default function HomeNavbar() {
 
         {/* Navigation Menu */}
         <div className="hidden md:block">
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 lg:space-x-6">
             {menuItems.map(item => (
               <Link
                 key={item.id}
                 href={item.href}
                 className={`${
-                  location.pathname === item.href
+                  pathname === item.href
                     ? "text-news-red bg-news-red/10"
                     : "text-gray-700 hover:text-news-red hover:bg-gray-50"
-                } px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 transform hover:scale-105 ${
+                } px-3 lg:px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 transform hover:scale-105 ${
                   isNepali ? "font-nepali" : ""
                 }`}
                 aria-label={t(item.label, item.labelNe)}
@@ -79,12 +79,13 @@ export default function HomeNavbar() {
         </div>
 
         {/* Mobile menu button */}
-        <div className="md:hidden">
+        <div className="flex md:hidden">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={t("Toggle mobile menu", "मोबाइल मेनु")}
+            className="p-2 h-10 w-10"
           >
             <svg
               className="h-6 w-6"
@@ -104,14 +105,14 @@ export default function HomeNavbar() {
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="py-4 space-y-2">
+          <div className="md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-[60]">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+              <div className="py-3 sm:py-4 space-y-1 sm:space-y-2">
                 {menuItems.map(item => (
                   <Link
                     key={item.id}
                     href={item.href}
-                    className={`block px-4 py-3 text-base font-medium text-gray-700 hover:text-news-red hover:bg-gray-50 ${
+                    className={`block px-3 sm:px-4 py-3 text-base font-medium text-gray-700 hover:text-news-red hover:bg-gray-50 rounded-md transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}
                     onClick={() => setMobileMenuOpen(false)}

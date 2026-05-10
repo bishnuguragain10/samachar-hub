@@ -74,8 +74,8 @@ export default function NewsCard({
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 flex-wrap">
               {article.isBreaking && (
                 <Badge className="bg-red-600 text-white text-xs font-semibold gap-1 px-2 py-1">
                   <Zap className="w-3 h-3 fill-current" />
@@ -108,7 +108,7 @@ export default function NewsCard({
               )}
             </div>
             <h2
-              className={`text-white font-bold text-2xl sm:text-3xl leading-tight mb-3 group-hover:text-white transition-colors ${
+              className={`text-white font-bold text-xl sm:text-2xl lg:text-3xl leading-tight mb-2 sm:mb-3 group-hover:text-white transition-colors ${
                 isNepali ? "font-nepali" : ""
               }`}
             >
@@ -116,14 +116,14 @@ export default function NewsCard({
             </h2>
             {excerpt && (
               <p
-                className={`text-white/80 text-sm sm:text-base line-clamp-3 mb-4 ${isNepali ? "font-nepali" : ""}`}
+                className={`text-white/80 text-sm sm:text-base line-clamp-2 sm:line-clamp-3 mb-3 sm:mb-4 ${isNepali ? "font-nepali" : ""}`}
               >
                 {excerpt}
               </p>
             )}
-            <div className="flex items-center gap-4 text-white/70 text-xs sm:text-sm">
+            <div className="flex items-center gap-3 sm:gap-4 text-white/70 text-xs sm:text-sm">
               {author?.name && (
-                <span className="font-medium">{author.name}</span>
+                <span className="font-medium truncate">{author.name}</span>
               )}
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -144,9 +144,9 @@ export default function NewsCard({
     return (
       <Link
         href={`/article/${article.slug}`}
-        className="group flex gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+        className="group flex gap-3 sm:gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
       >
-        <div className="w-24 h-16 sm:w-28 sm:h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+        <div className="w-20 h-14 sm:w-24 sm:h-16 lg:w-28 lg:h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
           {article.coverImage ? (
             <img
               src={article.coverImage}
@@ -161,7 +161,7 @@ export default function NewsCard({
         <div className="flex-1 min-w-0">
           {category && (
             <span
-              className={`text-xs font-semibold mb-2 inline-block px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
+              className={`text-xs font-semibold mb-1.5 sm:mb-2 inline-block px-2 py-1 rounded-md ${isNepali ? "font-nepali" : ""}`}
               style={{
                 backgroundColor: category.color
                   ? category.color + "15"
@@ -173,13 +173,13 @@ export default function NewsCard({
             </span>
           )}
           <h3
-            className={`text-sm font-semibold leading-tight line-clamp-2 group-hover:text-news-red transition-colors mb-2 ${
+            className={`text-xs sm:text-sm font-semibold leading-tight line-clamp-2 group-hover:text-news-red transition-colors mb-1.5 sm:mb-2 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
             {title}
           </h3>
-          <div className="flex items-center gap-3 text-gray-500 text-xs">
+          <div className="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {timeAgo}

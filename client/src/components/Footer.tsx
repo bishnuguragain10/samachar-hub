@@ -102,8 +102,8 @@ export default function Footer() {
       </div>
 
       {/* Main footer */}
-      <div className="container py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container py-8 sm:py-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* About */}
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -244,14 +244,14 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-border">
-        <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className={isNepali ? "font-nepali" : ""}>
+        <div className="container py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span className={`text-center sm:text-left ${isNepali ? "font-nepali" : ""}`}>
             {t(
               `© ${new Date().getFullYear()} Samachar Hub. All rights reserved.`,
               `© ${new Date().getFullYear()} समाचार हब। सर्वाधिकार सुरक्षित।`
             )}
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <a href="#" className="hover:text-primary transition-colors">
               {t("Privacy Policy", "गोपनीयता नीति")}
             </a>

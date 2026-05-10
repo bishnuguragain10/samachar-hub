@@ -101,11 +101,11 @@ export default function Home() {
         <AdSlot type="banner" />
       </div>
 
-      <div className="container pb-12">
+      <div className="container px-3 sm:px-4 pb-8 sm:pb-12">
         {/* Hero + Sidebar layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
           {/* Main hero */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {featuredLoading ? (
               <Skeleton className="aspect-[16/9] w-full rounded-xl" />
             ) : featuredArticle ? (
@@ -121,7 +121,7 @@ export default function Home() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Trending */}
             <div className="bg-card border border-border rounded-xl p-4">
               <div className="flex items-center gap-2 mb-4">
@@ -161,7 +161,7 @@ export default function Home() {
         </div>
 
         {/* Category quick-nav */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex gap-2 flex-wrap overflow-x-auto pb-2 lg:pb-0 lg:overflow-visible">
             {categories.map(cat => (
               <Link key={cat.id} href={`/category/${cat.slug}`}>
@@ -186,19 +186,19 @@ export default function Home() {
         </div>
 
         {/* Latest news grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           <div className="lg:col-span-2">
             <SectionHeader en="Latest News" ne="ताजा समाचार" />
 
             {latestLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <ArticleSkeleton key={i} />
                 ))}
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {latestArticles.map((item, idx) => (
                     <div key={item.article.id}>
                       <NewsCard data={item} variant="default" showExcerpt />
