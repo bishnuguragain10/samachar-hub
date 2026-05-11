@@ -312,6 +312,50 @@ export default function ArticlePage() {
               </span>
             </div>
 
+            {/* Action buttons - share and bookmark */}
+            <div className="flex items-center gap-2 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleBookmark}
+              >
+                {isBookmarkedData ? (
+                  <BookmarkCheck className="w-4 h-4" />
+                ) : (
+                  <Bookmark className="w-4 h-4" />
+                )}
+                {isBookmarkedData
+                  ? t("Saved", "सेभ गरियो")
+                  : t("Save", "सेभ गर्नुहोस्")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => handleShare("facebook")}
+              >
+                <Facebook className="w-4 h-4" />
+                {t("Share", "साझा गर्नुहोस्")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => handleShare("twitter")}
+              >
+                <Twitter className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => handleShare("copy")}
+              >
+                <LinkIcon className="w-4 h-4" />
+              </Button>
+            </div>
+
             {/* Cover image */}
             {article.coverImage && (
               <div className="rounded-xl overflow-hidden mb-6">
@@ -327,6 +371,28 @@ export default function ArticlePage() {
             <div className="flex justify-center mb-6">
               <AdSlot type="in-article" className="w-full" />
             </div>
+
+            {/* AI Summary */}
+            {summary && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 mb-3 text-blue-700 dark:text-blue-300"
+                  onClick={() => setShowSummary(!showSummary)}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {showSummary
+                    ? t("Hide Summary", "सारांश लुकाउनुहोस्")
+                    : t("Show AI Summary", "AI सारांश देखाउनुहोस्")}
+                </Button>
+                {showSummary && (
+                  <p className={`text-sm text-blue-900 dark:text-blue-100 ${isNepali ? "font-nepali" : ""}`}>
+                    {summary}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Article content */}
             {content ? (
@@ -344,6 +410,104 @@ export default function ArticlePage() {
                 )}
               </div>
             )}
+
+            {/* Related articles section */}
+            {relatedData && relatedData.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-border">
+                <h2
+                  className={`text-xl font-bold mb-4 ${isNepali ? "font-nepali" : ""}`}
+                >
+                  {t("Related Articles", "सम्बन्धित लेखहरू")}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {relatedData.slice(0, 4).map(item => (
+                    <NewsCard key={item.article.id} data={item} variant="default" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Comments section */}
+            <div className="mt-8 pt-8 border-t border-border">
+              <h2
+                className={`text-xl font-bold mb-4 flex items-center gap-2 ${isNepali ? "font-nepali" : ""}`}
+              >
+                <MessageCircle className="w-5 h-5" />
+                {t("Comments", "टिप्पणीहरू")}
+                {commentsData && commentsData.length > 0 && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({commentsData.length})
+                  </span>
+                )}
+              </h2>
+
+              {/* Comment form */}
+              <form onSubmit={handleComment} className="mb-6">
+                {!isAuthenticated && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <Input
+                      placeholder={t("Your name", "तपाईंको नाम")}
+                      value={guestName}
+                      onChange={e => setGuestName(e.target.value)}
+                      required
+                    />
+                    <Input
+                      type="email"
+                      placeholder={t("Your email", "तपाईंको इमेल")}
+                      value={guestEmail}
+                      onChange={e => setGuestEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+                <Textarea
+                  placeholder={t("Write a comment...", "टिप्पणी लेख्नुहोस्...")}
+                  value={commentText}
+                  onChange={e => setCommentText(e.target.value)}
+                  rows={3}
+                  className="mb-4"
+                  required
+                />
+                <Button type="submit" disabled={addComment.isPending}>
+                  {addComment.isPending
+                    ? t("Submitting...", "पेश गर्दै...")
+                    : t("Submit Comment", "टिप्पणी पेश गर्नुहोस्")}
+                </Button>
+              </form>
+
+              {/* Comments list */}
+              {commentsData && commentsData.length > 0 ? (
+                <div className="space-y-4">
+                  {commentsData.map(item => (
+                    <div
+                      key={item.comment.id}
+                      className="bg-muted/30 rounded-lg p-4"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                          {(item.user?.name || item.comment.guestName || "U")[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {item.user?.name || item.comment.guestName || "Guest"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(item.comment.createdAt), {
+                              addSuffix: true,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm">{item.comment.content}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  {t("No comments yet. Be the first to comment!", "अझै कुनै टिप्पणी छैन। पहिले टिप्पणी गर्नुहोस्!")}
+                </p>
+              )}
+            </div>
           </article>
 
           {/* Sidebar */}

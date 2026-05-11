@@ -60,7 +60,7 @@ export default function NewsCard({
   if (variant === "hero") {
     return (
       <Link href={`/article/${article.slug}`} className="group block">
-        <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-gray-100 shadow-lg group-hover:shadow-xl transition-all duration-300">
+        <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-gray-100 dark:bg-gray-800 shadow-lg group-hover:shadow-xl transition-all duration-300">
           {article.coverImage ? (
             <img
               src={article.coverImage}
@@ -69,7 +69,7 @@ export default function NewsCard({
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
               <span className="text-6xl opacity-30">📰</span>
             </div>
           )}
@@ -144,9 +144,9 @@ export default function NewsCard({
     return (
       <Link
         href={`/article/${article.slug}`}
-        className="group flex gap-3 sm:gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+        className="group flex gap-3 sm:gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
       >
-        <div className="w-20 h-14 sm:w-24 sm:h-16 lg:w-28 lg:h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+        <div className="w-20 h-14 sm:w-24 sm:h-16 lg:w-28 lg:h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
           {article.coverImage ? (
             <img
               src={article.coverImage}
@@ -155,7 +155,7 @@ export default function NewsCard({
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -173,13 +173,13 @@ export default function NewsCard({
             </span>
           )}
           <h3
-            className={`text-xs sm:text-sm font-semibold leading-tight line-clamp-2 group-hover:text-news-red transition-colors mb-1.5 sm:mb-2 ${
+            className={`text-xs sm:text-sm font-semibold leading-tight line-clamp-2 group-hover:text-news-red transition-colors mb-1.5 sm:mb-2 text-gray-900 dark:text-gray-100 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
             {title}
           </h3>
-          <div className="flex items-center gap-2 sm:gap-3 text-gray-500 text-xs">
+          <div className="flex items-center gap-2 sm:gap-3 text-gray-500 dark:text-gray-400 text-xs">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {timeAgo}
@@ -203,13 +203,13 @@ export default function NewsCard({
         <div className="w-1.5 h-1.5 rounded-full bg-news-red mt-2 shrink-0" />
         <div className="flex-1 min-w-0">
           <h4
-            className={`text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors ${
+            className={`text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors text-gray-900 dark:text-gray-100 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
             {title}
           </h4>
-          <span className="text-xs text-muted-foreground">{timeAgo}</span>
+          <span className="text-xs text-muted-foreground dark:text-gray-400">{timeAgo}</span>
         </div>
       </Link>
     );
@@ -218,8 +218,8 @@ export default function NewsCard({
   // Default card
   return (
     <Link href={`/article/${article.slug}`} className="group block">
-      <div className="rounded-2xl overflow-hidden bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-        <div className="aspect-[16/10] overflow-hidden bg-gray-100">
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+        <div className="aspect-[16/10] overflow-hidden bg-gray-100 dark:bg-gray-800">
           {article.coverImage ? (
             <img
               src={article.coverImage}
@@ -228,7 +228,7 @@ export default function NewsCard({
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
               <span className="text-4xl opacity-30">📰</span>
             </div>
           )}
@@ -257,14 +257,14 @@ export default function NewsCard({
             {article.isSponsored && (
               <Badge
                 variant="outline"
-                className="text-xs font-semibold px-2 py-1 border-gray-300"
+                className="text-xs font-semibold px-2 py-1 border-gray-300 dark:border-gray-600"
               >
                 {t("Sponsored", "प्रायोजित")}
               </Badge>
             )}
           </div>
           <h3
-            className={`font-bold text-lg leading-snug mb-3 line-clamp-3 group-hover:text-news-red transition-colors flex-1 ${
+            className={`font-bold text-lg leading-snug mb-3 line-clamp-3 group-hover:text-news-red transition-colors flex-1 text-gray-900 dark:text-gray-100 ${
               isNepali ? "font-nepali" : ""
             }`}
           >
@@ -272,12 +272,12 @@ export default function NewsCard({
           </h3>
           {showExcerpt && excerpt && (
             <p
-              className={`text-sm text-gray-600 line-clamp-2 mb-4 ${isNepali ? "font-nepali" : ""}`}
+              className={`text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4 ${isNepali ? "font-nepali" : ""}`}
             >
               {excerpt}
             </p>
           )}
-          <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-auto pt-3 border-t border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
               <span>{timeAgo}</span>

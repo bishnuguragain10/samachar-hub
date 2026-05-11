@@ -48,7 +48,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-card border-t border-border mt-12">
+    <footer className="bg-card dark:bg-gray-900 border-t border-border dark:border-gray-800 mt-12">
       {/* Newsletter section */}
       <div className="bg-news-red text-white">
         <div className="container py-10">
@@ -111,14 +111,14 @@ export default function Footer() {
                 <span className="text-white font-bold">S</span>
               </div>
               <div>
-                <div className="font-bold text-sm">Samachar Hub</div>
-                <div className="font-nepali text-xs text-muted-foreground">
+                <div className="font-bold text-sm text-gray-900 dark:text-white">Samachar Hub</div>
+                <div className="font-nepali text-xs text-muted-foreground dark:text-gray-400">
                   समाचार हब
                 </div>
               </div>
             </div>
             <p
-              className={`text-sm text-muted-foreground mb-4 ${isNepali ? "font-nepali" : ""}`}
+              className={`text-sm text-muted-foreground dark:text-gray-400 mb-4 ${isNepali ? "font-nepali" : ""}`}
             >
               {t(
                 "Nepal's trusted source for breaking news, politics, business, sports, and more.",
@@ -128,28 +128,28 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <a
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors"
                 aria-label="Twitter"
               >
                 <Twitter className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors"
                 aria-label="YouTube"
               >
                 <Youtube className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="w-4 h-4" />
@@ -160,7 +160,7 @@ export default function Footer() {
           {/* Categories */}
           <div>
             <h4
-              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+              className={`font-bold text-sm mb-4 text-gray-900 dark:text-white ${isNepali ? "font-nepali" : ""}`}
             >
               {t("Categories", "श्रेणीहरू")}
             </h4>
@@ -169,7 +169,7 @@ export default function Footer() {
                 <li key={cat.id}>
                   <Link
                     href={`/category/${cat.slug}`}
-                    className={`text-sm text-muted-foreground hover:text-primary transition-colors ${
+                    className={`text-sm text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}
                   >
@@ -183,7 +183,7 @@ export default function Footer() {
           {/* Quick links */}
           <div>
             <h4
-              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+              className={`font-bold text-sm mb-4 text-gray-900 dark:text-white ${isNepali ? "font-nepali" : ""}`}
             >
               {t("Quick Links", "द्रुत लिङ्कहरू")}
             </h4>
@@ -199,7 +199,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`text-sm text-muted-foreground hover:text-primary transition-colors ${
+                    className={`text-sm text-muted-foreground dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}
                   >
@@ -213,27 +213,27 @@ export default function Footer() {
           {/* Contact */}
           <div id="contact">
             <h4
-              className={`font-bold text-sm mb-4 ${isNepali ? "font-nepali" : ""}`}
+              className={`font-bold text-sm mb-4 text-gray-900 dark:text-white ${isNepali ? "font-nepali" : ""}`}
             >
               {t("Contact Us", "सम्पर्क गर्नुहोस्")}
             </h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2 text-sm text-muted-foreground dark:text-gray-400">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-news-red" />
                 <span className={isNepali ? "font-nepali" : ""}>
                   {t("Kathmandu, Nepal", "काठमाडौं, नेपाल")}
                 </span>
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2 text-sm text-muted-foreground dark:text-gray-400">
                 <Mail className="w-4 h-4 shrink-0 text-news-red" />
                 <a
                   href="mailto:news@samacharhub.com"
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-primary dark:hover:text-white transition-colors"
                 >
                   news@samacharhub.com
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2 text-sm text-muted-foreground dark:text-gray-400">
                 <Phone className="w-4 h-4 shrink-0 text-news-red" />
                 <span>+977-1-XXXXXXX</span>
               </li>
@@ -243,8 +243,8 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-border">
-        <div className="container py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+      <div className="border-t border-border dark:border-gray-800">
+        <div className="container py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground dark:text-gray-400">
           <span className={`text-center sm:text-left ${isNepali ? "font-nepali" : ""}`}>
             {t(
               `© ${new Date().getFullYear()} Samachar Hub. All rights reserved.`,
@@ -252,10 +252,10 @@ export default function Footer() {
             )}
           </span>
           <div className="flex items-center gap-3 sm:gap-4">
-            <a href="#" className="hover:text-primary transition-colors">
+            <a href="#" className="hover:text-primary dark:hover:text-white transition-colors">
               {t("Privacy Policy", "गोपनीयता नीति")}
             </a>
-            <a href="#" className="hover:text-primary transition-colors">
+            <a href="#" className="hover:text-primary dark:hover:text-white transition-colors">
               {t("Terms of Service", "सेवाका शर्तहरू")}
             </a>
           </div>

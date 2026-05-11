@@ -8,6 +8,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Navbar from "./components/Navbar";
 import BreakingNewsTicker from "./components/BreakingNewsTicker";
 import Footer from "./components/Footer";
+import MobileBottomNav from "./components/MobileBottomNav";
 import Home from "./pages/Home";
 import ArticlePage from "./pages/ArticlePage";
 import CategoryPage from "./pages/CategoryPage";
@@ -25,6 +26,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <BreakingNewsTicker />
       <main className="flex-1">{children}</main>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 }
