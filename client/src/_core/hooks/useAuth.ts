@@ -28,6 +28,17 @@ export function useAuth(options?: UseAuthOptions) {
     refetchOnMount: !hasLoggedOut,
     refetchOnReconnect: false,
     staleTime: Infinity,
+    enabled: !hasLoggedOut,
+    trpc: {
+      context: {
+        headers: () => {
+          if (hasLoggedOut) {
+            return { "x-auth-logout-flag": "true" };
+          }
+          return {};
+        },
+      },
+    },
   });
 
   const logoutMutation = trpc.auth.logout.useMutation({
@@ -58,11 +69,25 @@ export function useAuth(options?: UseAuthOptions) {
       // Clear client-side state
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
-      localStorage.removeItem("manus-runtime-user-info");
       
-      // Also clear any other Runway Auth related storage
-      localStorage.removeItem("runway-auth-state");
-      localStorage.removeItem("runway-auth-tokens");
+      // Clear all possible storage keys that might contain auth data
+      const keysToRemove = [
+        "manus-runtime-user-info",
+        "runway-auth-state",
+        "runway-auth-tokens",
+        "auth-user",
+        "user",
+        "session",
+        "token",
+      ];
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      
+      // Clear all localStorage and sessionStorage as a fallback
+      localStorage.clear();
       sessionStorage.clear();
       
       // Redirect to home page to ensure clean state
@@ -73,6 +98,16 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    // If logout flag is set, force user to null regardless of query result
+    if (hasLoggedOut) {
+      return {
+        user: null,
+        loading: false,
+        error: null,
+        isAuthenticated: false,
+      };
+    }
+    
     // Clear logout flag if user is authenticated (new login happened)
     if (meQuery.data && hasLoggedOut) {
       localStorage.removeItem(LOGOUT_FLAG_KEY);

@@ -14,6 +14,17 @@ export async function createContext(
   let user: User | null = null;
 
   try {
+    // Check for logout flag in request headers to prevent session restoration
+    const logoutFlag = opts.req.headers["x-auth-logout-flag"];
+    if (logoutFlag === "true") {
+      console.log("[Context] Logout flag detected, skipping authentication");
+      return {
+        req: opts.req,
+        res: opts.res,
+        user: null,
+      };
+    }
+
     user = await sdk.authenticateRequest(opts.req);
   } catch (error) {
     // Authentication is optional for public procedures.
