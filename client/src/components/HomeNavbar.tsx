@@ -12,6 +12,9 @@ export default function HomeNavbar() {
   // Get navbar categories from service layer
   const { loading, data: menuItems } = useNavbarCategories();
 
+  // Loading-safe: if service fails, use empty array to prevent crashes
+  const categories = menuItems ?? [];
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 h-16 relative">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 h-full flex items-center justify-between">
@@ -28,7 +31,7 @@ export default function HomeNavbar() {
         {/* Navigation Menu */}
         <div className="hidden md:block">
           <div className="flex items-center space-x-4 lg:space-x-6">
-            {menuItems.map(item => (
+            {categories.map(item => (
               <Link
                 key={item.id}
                 href={item.slug === "/" ? "/" : `/category/${item.slug}`}
@@ -77,7 +80,7 @@ export default function HomeNavbar() {
           <div className="md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-[60]">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
               <div className="py-3 sm:py-4 space-y-1 sm:space-y-2">
-                {menuItems.map(item => (
+                {categories.map(item => (
                   <Link
                     key={item.id}
                     href={item.slug === "/" ? "/" : `/category/${item.slug}`}

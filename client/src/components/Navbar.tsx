@@ -35,13 +35,14 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [location, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Use mock navbar categories (ready for future backend integration)
-  const { data: categoriesData } = useNavbarCategories();
+  const { loading, data: categoriesData } = useNavbarCategories();
   const categories = categoriesData ?? [];
 
   useEffect(() => {
@@ -70,66 +71,159 @@ export default function Navbar() {
       } border-b border-gray-100`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-news-red to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <span className="font-bold text-xl hidden sm:block text-gray-900 group-hover:text-news-red transition-colors">
-              Samachar Hub
-            </span>
-          </Link>
-
-          {/* Desktop category nav */}
-          <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-            {categories.slice(0, 6).map((cat: NavbarCategory) => (
-              <Link
-                key={cat.id}
-                href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                  location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
-                    ? "bg-news-red text-white shadow-sm"
-                    : "text-gray-700 hover:shadow-sm"
-                } ${language === "ne" ? "font-nepali" : ""}`}
-              >
-                {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
-              </Link>
-            ))}
-            {categories.length > 6 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-news-red transition-all duration-200 gap-1"
-                  >
-                    {t("More", "थप")} <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="border-gray-200 shadow-lg">
-                  {categories.slice(6).map((cat: NavbarCategory) => (
-                    <DropdownMenuItem
-                      key={cat.id}
-                      asChild
-                      className="hover:bg-gray-100 hover:text-news-red"
-                    >
-                      <Link
-                        href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
-                        className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}
-                      >
-                        {language === "ne" && cat.nameNe
-                          ? cat.nameNe
-                          : cat.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+        {/* Mobile layout - hamburger left, logo center, utilities right */}
+        <div className="lg:hidden flex items-center h-16">
+          {/* FAR LEFT: Hamburger */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-10 w-10 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors shrink-0"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
             )}
-          </nav>
+          </Button>
 
-          {/* Right controls */}
+          {/* CENTER: Logo */}
+          <div className="flex-1 flex justify-center">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 bg-gradient-to-br from-news-red to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                <span className="text-white font-bold">S</span>
+              </div>
+              <span className="font-bold text-lg text-gray-900 group-hover:text-news-red transition-colors">
+                Samachar Hub
+              </span>
+            </Link>
+          </div>
+
+          {/* RIGHT: Utilities */}
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              onClick={() => setSearchOpen(!searchOpen)}
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              onClick={toggleLanguage}
+              aria-label="Switch language"
+            >
+              <Globe className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </Button>
+            {isAuthenticated ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-10 w-10 p-0 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={() => setProfileOpen(true)}
+                aria-label="Profile"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                onClick={() => (window.location.href = "/login")}
+              >
+                {t("Login", "लगइन")}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop layout - logo + categories left, utilities right */}
+        <div className="hidden lg:flex items-center h-16">
+          {/* Left side: Logo + Categories */}
+          <div className="flex items-center gap-6">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-news-red to-red-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                <span className="text-white font-bold text-lg">S</span>
+              </div>
+              <span className="font-bold text-xl text-gray-900 group-hover:text-news-red transition-colors">
+                Samachar Hub
+              </span>
+            </Link>
+
+            {/* Desktop category nav - left aligned */}
+            <nav className="flex items-center gap-2">
+              {categories.slice(0, 6).map((cat: NavbarCategory) => (
+                <Link
+                  key={cat.id}
+                  href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
+                    location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
+                      ? "bg-news-red text-white shadow-sm"
+                      : "text-gray-700 hover:shadow-sm"
+                  } ${language === "ne" ? "font-nepali" : ""}`}
+                >
+                  {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
+                </Link>
+              ))}
+              {categories.length > 6 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-news-red transition-all duration-200 gap-1"
+                    >
+                      {t("More", "थप")} <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="border-gray-200 shadow-lg">
+                    {categories.slice(6).map((cat: NavbarCategory) => (
+                      <DropdownMenuItem
+                        key={cat.id}
+                        asChild
+                        className="hover:bg-gray-100 hover:text-news-red"
+                      >
+                        <Link
+                          href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                          className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}
+                        >
+                          {language === "ne" && cat.nameNe
+                            ? cat.nameNe
+                            : cat.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </nav>
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Right side: Controls */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Search */}
             {searchOpen ? (
@@ -262,71 +356,112 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button
-                  size="sm"
-                  className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                  onClick={() => (window.location.href = "/login")}
-                >
-                  {t("Login", "लगइन")}
-                </Button>
-                {/* Mobile menu toggle */}
+              <Button
+                size="sm"
+                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                onClick={() => (window.location.href = "/login")}
+              >
+                {t("Login", "लगइन")}
+              </Button>
+            )}
+            </div>
+          </div>
+        </div>
+
+      {/* Mobile menu - categories only, slides from LEFT */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+          <div className="absolute left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
+            <div className="flex flex-col h-full">
+              {/* Mobile menu header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-news-red to-red-600 rounded-lg flex items-center justify-center shadow-md">
+                    <span className="text-white font-bold text-sm">S</span>
+                  </div>
+                  <span className="font-bold text-lg text-gray-900">Samachar Hub</span>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 lg:hidden rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                  aria-label="Toggle menu"
+                  className="h-8 w-8 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setMobileOpen(false)}
+                  aria-label="Close menu"
                 >
-                  {mobileOpen ? (
-                    <X className="w-4 h-4" />
-                  ) : (
-                    <Menu className="w-4 h-4" />
-                  )}
+                  <X className="w-5 h-5" />
                 </Button>
-              </>
-            )}
+              </div>
+
+              {/* Mobile menu content - categories only */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-1">
+                  {categories.map((cat: NavbarCategory) => (
+                    <Link
+                      key={cat.id}
+                      href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                      className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
+                        location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
+                          ? "bg-news-red text-white shadow-sm"
+                          : "text-gray-700"
+                      } ${language === "ne" ? "font-nepali" : ""}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="lg:hidden border-t border-gray-200 bg-white shadow-lg">
-          <div className="container mx-auto px-4 py-6 space-y-6">
-            {/* Mobile search */}
-            <form
-              onSubmit={handleSearch}
-              className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200"
-            >
-              <Search className="w-4 h-4 text-gray-400" />
-              <Input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder={t("Search news...", "समाचार खोज्नुहोस्...")}
-                className="flex-1 h-auto border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </form>
-
-            {/* Mobile categories */}
-            <div className="space-y-1">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                {t("Categories", "श्रेणीहरू")}
-              </h3>
-              {categories.map((cat: NavbarCategory) => (
-                <Link
-                  key={cat.id}
-                  href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
-                  className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                    location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
-                      ? "bg-news-red text-white shadow-sm"
-                      : "text-gray-700"
-                  } ${language === "ne" ? "font-nepali" : ""}`}
-                  onClick={() => setMobileOpen(false)}
+      {/* Profile panel - logout only, slides from RIGHT */}
+      {profileOpen && isAuthenticated && (
+        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+          <div className="absolute right-0 top-0 h-full w-72 max-w-[80vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
+            <div className="flex flex-col h-full">
+              {/* Profile panel header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <span className="font-bold text-lg text-gray-900">Profile</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => setProfileOpen(false)}
+                  aria-label="Close panel"
                 >
-                  {language === "ne" && cat.nameNe ? cat.nameNe : cat.name}
-                </Link>
-              ))}
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Profile panel content - logout only */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex items-center gap-3 px-4 py-4 bg-gray-50 rounded-lg mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-news-red to-red-600 text-white flex items-center justify-center text-lg font-bold shadow-sm">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="font-medium text-base text-gray-900">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setProfileOpen(false);
+                    if (location === "/") {
+                      window.location.reload();
+                    }
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-news-red rounded-lg transition-colors text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t("Logout", "लगआउट")}
+                </button>
+              </div>
             </div>
           </div>
         </div>
