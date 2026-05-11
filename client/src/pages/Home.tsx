@@ -49,9 +49,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Navigation Bar */}
-      <HomeNavbar />
-
       {/* Header Ad Banner */}
       <div className="container py-3 flex justify-center">
         <AdSlot type="banner" />

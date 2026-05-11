@@ -1,47 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { useNavbarCategories } from "@/services/navbar";
 
 export default function HomeNavbar() {
   const { t, isNepali } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pathname] = useLocation();
 
-  const menuItems = [
-    { id: "home", label: "Home", labelNe: "होम", href: "/" },
-    {
-      id: "politics",
-      label: "Politics",
-      labelNe: "राजनीति",
-      href: "/politics",
-    },
-    {
-      id: "business",
-      label: "Business",
-      labelNe: "व्यापार",
-      href: "/business",
-    },
-    {
-      id: "technology",
-      label: "Technology",
-      labelNe: "प्रविध्य",
-      href: "/technology",
-    },
-    { id: "sports", label: "Sports", labelNe: "खेलाडु", href: "/sports" },
-    {
-      id: "entertainment",
-      label: "Entertainment",
-      labelNe: "मनोरञ्जन",
-      href: "/entertainment",
-    },
-    {
-      id: "international",
-      label: "International",
-      labelNe: "अन्तराष्ट्रिय",
-      href: "/international",
-    },
-  ];
+  // Get navbar categories from service layer
+  const { loading, data: menuItems } = useNavbarCategories();
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 h-16 relative">
@@ -62,17 +31,17 @@ export default function HomeNavbar() {
             {menuItems.map(item => (
               <Link
                 key={item.id}
-                href={item.href}
+                href={item.slug === "/" ? "/" : `/category/${item.slug}`}
                 className={`${
-                  pathname === item.href
+                  pathname === (item.slug === "/" ? "/" : `/category/${item.slug}`)
                     ? "text-news-red bg-news-red/10"
                     : "text-gray-700 hover:text-news-red hover:bg-gray-50"
                 } px-3 lg:px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 transform hover:scale-105 ${
                   isNepali ? "font-nepali" : ""
                 }`}
-                aria-label={t(item.label, item.labelNe)}
+                aria-label={t(item.name, item.nameNe)}
               >
-                {t(item.label, item.labelNe)}
+                {t(item.name, item.nameNe)}
               </Link>
             ))}
           </div>
@@ -111,13 +80,13 @@ export default function HomeNavbar() {
                 {menuItems.map(item => (
                   <Link
                     key={item.id}
-                    href={item.href}
+                    href={item.slug === "/" ? "/" : `/category/${item.slug}`}
                     className={`block px-3 sm:px-4 py-3 text-base font-medium text-gray-700 hover:text-news-red hover:bg-gray-50 rounded-md transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {t(item.label, item.labelNe)}
+                    {t(item.name, item.nameNe)}
                   </Link>
                 ))}
               </div>

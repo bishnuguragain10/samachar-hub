@@ -3,9 +3,9 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { trpc } from "@/lib/trpc";
-import { useNavCategoriesWithCache } from "@/hooks/useCategoriesWithCache";
+import { useNavbarCategories } from "@/services/navbar";
 import { getLoginUrl } from "@/const";
+import type { NavbarCategory } from "@/data/navbar-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,8 +40,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Fetch dynamic navigation categories from backend
-  const { data: categoriesData } = trpc.categories.navList.useQuery();
+  // Use mock navbar categories (ready for future backend integration)
+  const { data: categoriesData } = useNavbarCategories();
   const categories = categoriesData ?? [];
 
   useEffect(() => {
@@ -83,12 +83,12 @@ export default function Navbar() {
 
           {/* Desktop category nav */}
           <nav className="hidden lg:flex items-center gap-2 flex-1 justify-center">
-            {categories.slice(0, 6).map(cat => (
+            {categories.slice(0, 6).map((cat: NavbarCategory) => (
               <Link
                 key={cat.id}
-                href={`/category/${cat.slug}`}
+                href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                  location === `/category/${cat.slug}`
+                  location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
                     ? "bg-news-red text-white shadow-sm"
                     : "text-gray-700 hover:shadow-sm"
                 } ${language === "ne" ? "font-nepali" : ""}`}
@@ -108,14 +108,14 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="border-gray-200 shadow-lg">
-                  {categories.slice(6).map(cat => (
+                  {categories.slice(6).map((cat: NavbarCategory) => (
                     <DropdownMenuItem
                       key={cat.id}
                       asChild
                       className="hover:bg-gray-100 hover:text-news-red"
                     >
                       <Link
-                        href={`/category/${cat.slug}`}
+                        href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
                         className={`text-sm font-medium ${language === "ne" ? "font-nepali" : ""}`}
                       >
                         {language === "ne" && cat.nameNe
@@ -313,12 +313,12 @@ export default function Navbar() {
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 {t("Categories", "श्रेणीहरू")}
               </h3>
-              {categories.map(cat => (
+              {categories.map((cat: NavbarCategory) => (
                 <Link
                   key={cat.id}
-                  href={`/category/${cat.slug}`}
+                  href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
                   className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:text-news-red ${
-                    location === `/category/${cat.slug}`
+                    location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
                       ? "bg-news-red text-white shadow-sm"
                       : "text-gray-700"
                   } ${language === "ne" ? "font-nepali" : ""}`}
