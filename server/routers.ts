@@ -59,7 +59,13 @@ export const appRouter = router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
+      // Clear the cookie with multiple approaches to ensure it's removed
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, expires: new Date(0) });
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: 0 });
+      // Also clear any potential Runway Auth cookies
+      ctx.res.clearCookie("runway-auth-token", { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie("runway-auth-state", { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),

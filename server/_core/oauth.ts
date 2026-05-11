@@ -59,12 +59,18 @@ async function ensureDefaultAdminAccount() {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  void ensureDefaultAdminAccount().catch(error => {
-    console.error(
-      "[Admin Setup] Failed to prepare default admin account:",
-      error
-    );
-  });
+  // Only ensure default admin account if explicitly requested
+  // This prevents automatic account creation and potential auto-login issues
+  if (process.env.ENSURE_DEFAULT_ADMIN === "true") {
+    void ensureDefaultAdminAccount().catch(error => {
+      console.error(
+        "[Admin Setup] Failed to prepare default admin account:",
+        error
+      );
+    });
+  } else {
+    console.log("[Admin Setup] Skipping default admin account setup (set ENSURE_DEFAULT_ADMIN=true to enable)");
+  }
 
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
@@ -111,16 +117,26 @@ export function registerOAuthRoutes(app: Express) {
   });
 
   // Development-only login endpoint (when Manus OAuth is not available or DEV_ADMIN_EMAIL is set)
-  if (process.env.NODE_ENV === "development" || ENV.devAdminEmail) {
+  // Completely disabled to prevent auto-login issues
+  // To enable, set ENABLE_DEV_LOGIN=true in environment
+  if (process.env.ENABLE_DEV_LOGIN === "true") {
     app.get("/api/dev-login", async (req: Request, res: Response) => {
       try {
         const queryEmail = getQueryParam(req, "email");
         const queryName = getQueryParam(req, "name");
         const queryOpenId = getQueryParam(req, "openId");
 
-        const testEmail = queryEmail ?? ENV.devAdminEmail;
+        // Require explicit email parameter to prevent auto-login
+        if (!queryEmail) {
+          return res.status(400).json({ 
+            error: "Email parameter is required for dev-login",
+            usage: "/api/dev-login?email=your-email@example.com"
+          });
+        }
+
+        const testEmail = queryEmail;
         const testName = queryName ?? ENV.devAdminName;
-        const testOpenId = queryOpenId ?? testEmail ?? ENV.devAdminOpenId;
+        const testOpenId = queryOpenId ?? testEmail;
 
         console.log(
           "[Dev Login] Creating/updating user with openId:",

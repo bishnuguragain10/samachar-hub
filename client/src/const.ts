@@ -5,9 +5,10 @@ export const getLoginUrl = () => {
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
   const appId = import.meta.env.VITE_APP_ID;
 
-  // If OAuth is not configured, fall back to dev login
+  // If OAuth is not configured, fall back to admin login page instead of dev-login
+  // This prevents auto-login issues
   if (!oauthPortalUrl || !appId) {
-    return "/api/dev-login";
+    return "/admin-login";
   }
 
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
