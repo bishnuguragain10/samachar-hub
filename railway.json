@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm run build",
+  "deploy": {
+    "startCommand": "npm run start",
+    "healthcheckPath": "/"
+  }
+}
