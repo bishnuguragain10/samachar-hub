@@ -49,10 +49,6 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
-      // Set logout flag to prevent re-authentication
-      setHasLoggedOut(true);
-      localStorage.setItem(LOGOUT_FLAG_KEY, "true");
-      
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
       console.error("[Logout] Error:", error);
@@ -66,11 +62,15 @@ export function useAuth(options?: UseAuthOptions) {
         console.error("[Logout] Unexpected error during logout:", error);
       }
     } finally {
+      // Set logout flag to prevent re-authentication
+      setHasLoggedOut(true);
+      localStorage.setItem(LOGOUT_FLAG_KEY, "true");
+      
       // Clear client-side state
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
       
-      // Clear all possible storage keys that might contain auth data
+      // Clear auth-related storage keys only
       const keysToRemove = [
         "manus-runtime-user-info",
         "runway-auth-state",
@@ -79,16 +79,13 @@ export function useAuth(options?: UseAuthOptions) {
         "user",
         "session",
         "token",
+        LOGOUT_FLAG_KEY,
       ];
       
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);
         sessionStorage.removeItem(key);
       });
-      
-      // Clear all localStorage and sessionStorage as a fallback
-      localStorage.clear();
-      sessionStorage.clear();
       
       // Redirect to home page to ensure clean state
       if (typeof window !== "undefined") {

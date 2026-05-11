@@ -32,7 +32,7 @@ import {
 import NewsletterModal from "./NewsletterModal";
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [location, navigate] = useLocation();
@@ -138,7 +138,9 @@ export default function Navbar() {
                 <Moon className="w-5 h-5" />
               )}
             </Button>
-            {isAuthenticated ? (
+            {authLoading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            ) : isAuthenticated ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -295,7 +297,9 @@ export default function Navbar() {
             </Button>
 
             {/* Auth */}
-            {isAuthenticated ? (
+            {authLoading ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            ) : isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -350,9 +354,6 @@ export default function Navbar() {
                   <DropdownMenuItem
                     onClick={() => {
                       logout();
-                      if (location === "/") {
-                        window.location.reload();
-                      }
                     }}
                     className="flex items-center gap-2 text-sm hover:bg-gray-100"
                   >
@@ -459,9 +460,6 @@ export default function Navbar() {
                   onClick={() => {
                     logout();
                     setProfileOpen(false);
-                    if (location === "/") {
-                      window.location.reload();
-                    }
                   }}
                   className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-news-red rounded-lg transition-colors text-left"
                 >

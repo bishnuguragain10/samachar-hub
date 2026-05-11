@@ -4,14 +4,16 @@ import { Home, TrendingUp, Grid3x3, Search, User } from "lucide-react";
 
 export default function MobileBottomNav() {
   const [location] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
     { href: "/category", icon: Grid3x3, label: "Categories" },
     { href: "/trending", icon: TrendingUp, label: "Trending" },
-    ...(isAuthenticated
+    ...(loading
+      ? []
+      : isAuthenticated
       ? [{ href: "/bookmarks", icon: User, label: "Profile" }]
       : [{ href: "/login", icon: User, label: "Login" }]),
   ];
