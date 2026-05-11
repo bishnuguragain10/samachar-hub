@@ -98,20 +98,21 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    // Clear logout flag if user is authenticated (new login happened)
+    if (meQuery.data && hasLoggedOut) {
+      localStorage.removeItem(LOGOUT_FLAG_KEY);
+      setHasLoggedOut(false);
+    }
+    
     // If logout flag is set, force user to null regardless of query result
-    if (hasLoggedOut) {
+    // But only if the query is not loading (to allow initial check)
+    if (hasLoggedOut && !meQuery.isLoading) {
       return {
         user: null,
         loading: false,
         error: null,
         isAuthenticated: false,
       };
-    }
-    
-    // Clear logout flag if user is authenticated (new login happened)
-    if (meQuery.data && hasLoggedOut) {
-      localStorage.removeItem(LOGOUT_FLAG_KEY);
-      setHasLoggedOut(false);
     }
     
     return {

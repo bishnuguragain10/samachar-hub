@@ -27,7 +27,9 @@ import {
   User,
   Settings,
   ChevronDown,
+  Mail,
 } from "lucide-react";
+import NewsletterModal from "./NewsletterModal";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,6 +41,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [newsletterOpen, setNewsletterOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Use mock navbar categories (ready for future backend integration)
@@ -150,10 +153,11 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                onClick={() => (window.location.href = "/login")}
+                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 gap-2"
+                onClick={() => setNewsletterOpen(true)}
               >
-                {t("Login", "लगइन")}
+                <Mail className="w-3 h-3" />
+                {t("Subscribe", "सदस्यता")}
               </Button>
             )}
           </div>
@@ -360,10 +364,11 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                onClick={() => (window.location.href = "/login")}
+                className="h-9 bg-gradient-to-r from-news-red to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 gap-2"
+                onClick={() => setNewsletterOpen(true)}
               >
-                {t("Login", "लगइन")}
+                <Mail className="w-3 h-3" />
+                {t("Subscribe", "सदस्यता")}
               </Button>
             )}
             </div>
@@ -468,6 +473,9 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Newsletter Modal */}
+      <NewsletterModal open={newsletterOpen} onOpenChange={setNewsletterOpen} />
     </header>
   );
 }

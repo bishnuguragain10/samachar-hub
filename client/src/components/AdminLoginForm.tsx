@@ -37,6 +37,9 @@ export default function AdminLoginForm({
     setIsSubmitting(true);
 
     try {
+      // Clear logout flag before admin login to prevent authentication blocking
+      localStorage.removeItem("auth-logout-flag");
+
       const response = await fetch("/api/admin-login", {
         method: "POST",
         credentials: "include",
