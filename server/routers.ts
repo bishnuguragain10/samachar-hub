@@ -36,7 +36,8 @@ import {
   removeBookmark,
   searchArticles,
   subscribeNewsletter,
-  updateArticle,
+  reorderCategories,
+  seedDefaultCategories,
   updateCategory,
   updateCommentStatus,
 } from "./db";
@@ -154,6 +155,12 @@ export const appRouter = router({
     getById: adminProcedure
       .input(z.object({ id: z.number() }))
       .query(({ input }) => getCategoryById(input.id)),
+
+    seed: adminProcedure
+      .mutation(async () => {
+        const result = await seedDefaultCategories();
+        return result;
+      }),
   }),
 
   // ─── Articles ──────────────────────────────────────────────────────
@@ -235,15 +242,19 @@ export const appRouter = router({
           tags: z.string().optional(),
           metaTitle: z.string().optional(),
           metaDescription: z.string().optional(),
+          aiSummary: z.string().optional(),
+          aiSummaryNe: z.string().optional(),
           scheduledAt: z.date().optional(),
           generateSummary: z.boolean().default(false),
         })
       )
       .mutation(async ({ input, ctx }) => {
         const { generateSummary, ...articleData } = input;
-        let aiSummary: string | undefined;
+        let aiSummary: string | undefined = input.aiSummary;
+        let aiSummaryNe: string | undefined = input.aiSummaryNe;
         if (generateSummary && input.content) {
           try {
+            // Generate English summary
             const resp = await invokeLLM({
               messages: [
                 {
@@ -259,6 +270,25 @@ export const appRouter = router({
             });
             const content = resp.choices[0]?.message?.content;
             aiSummary = typeof content === "string" ? content : undefined;
+
+            // Generate Nepali summary if Nepali content exists
+            if (input.contentNe) {
+              const respNe = await invokeLLM({
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "You are a news editor. Write a concise 2-3 sentence summary of the following news article in Nepali. Be factual and neutral.",
+                  },
+                  {
+                    role: "user",
+                    content: `Title: ${input.titleNe || input.title}\n\n${input.contentNe.substring(0, 3000)}`,
+                  },
+                ],
+              });
+              const contentNe = respNe.choices[0]?.message?.content;
+              aiSummaryNe = typeof contentNe === "string" ? contentNe : undefined;
+            }
           } catch (e) {
             console.error("AI summary failed:", e);
           }
@@ -267,6 +297,7 @@ export const appRouter = router({
           ...articleData,
           authorId: ctx.user.id,
           aiSummary,
+          aiSummaryNe,
         } as Parameters<typeof createArticle>[0]);
       }),
 
@@ -282,6 +313,7 @@ export const appRouter = router({
           content: z.string().optional(),
           contentNe: z.string().optional(),
           aiSummary: z.string().optional(),
+          aiSummaryNe: z.string().optional(),
           coverImage: z.string().optional(),
           coverImageKey: z.string().optional(),
           categoryId: z.number().optional(),
@@ -302,6 +334,7 @@ export const appRouter = router({
         const { id, generateSummary, ...data } = input;
         if (generateSummary && data.content) {
           try {
+            // Generate English summary
             const resp = await invokeLLM({
               messages: [
                 {
@@ -318,6 +351,26 @@ export const appRouter = router({
             const content2 = resp.choices[0]?.message?.content;
             data.aiSummary =
               typeof content2 === "string" ? content2 : undefined;
+
+            // Generate Nepali summary if Nepali content exists
+            if (data.contentNe) {
+              const respNe = await invokeLLM({
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "You are a news editor. Write a concise 2-3 sentence summary of the following news article in Nepali. Be factual and neutral.",
+                  },
+                  {
+                    role: "user",
+                    content: `Title: ${data.titleNe ?? data.title ?? ""}\n\n${data.contentNe.substring(0, 3000)}`,
+                  },
+                ],
+              });
+              const contentNe = respNe.choices[0]?.message?.content;
+              data.aiSummaryNe =
+                typeof contentNe === "string" ? contentNe : undefined;
+            }
           } catch (e) {
             console.error("AI summary failed:", e);
           }

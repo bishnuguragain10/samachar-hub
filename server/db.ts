@@ -236,6 +236,102 @@ export async function reorderCategories(
   });
 }
 
+export async function seedDefaultCategories() {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const defaultCategories = [
+    {
+      name: "Politics",
+      nameNe: "राजनीति",
+      slug: "politics",
+      description: "Political news and updates",
+      descriptionNe: "राजनीतिक समाचार र अपडेटहरू",
+      color: "#dc2626",
+      sortOrder: 1,
+      isVisibleInNav: true,
+      isFeatured: true,
+      isActive: true,
+    },
+    {
+      name: "Business",
+      nameNe: "व्यापार",
+      slug: "business",
+      description: "Business and economy news",
+      descriptionNe: "व्यापार र अर्थतन्त्र समाचार",
+      color: "#2563eb",
+      sortOrder: 2,
+      isVisibleInNav: true,
+      isFeatured: true,
+      isActive: true,
+    },
+    {
+      name: "Technology",
+      nameNe: "प्रविधि",
+      slug: "technology",
+      description: "Technology news and updates",
+      descriptionNe: "प्रविधि समाचार र अपडेटहरू",
+      color: "#7c3aed",
+      sortOrder: 3,
+      isVisibleInNav: true,
+      isFeatured: true,
+      isActive: true,
+    },
+    {
+      name: "Sports",
+      nameNe: "खेलकुद",
+      slug: "sports",
+      description: "Sports news and updates",
+      descriptionNe: "खेलकुद समाचार र अपडेटहरू",
+      color: "#16a34a",
+      sortOrder: 4,
+      isVisibleInNav: true,
+      isFeatured: false,
+      isActive: true,
+    },
+    {
+      name: "Entertainment",
+      nameNe: "मनोरञ्जन",
+      slug: "entertainment",
+      description: "Entertainment news",
+      descriptionNe: "मनोरञ्जन समाचार",
+      color: "#ea580c",
+      sortOrder: 5,
+      isVisibleInNav: true,
+      isFeatured: false,
+      isActive: true,
+    },
+    {
+      name: "International",
+      nameNe: "अन्तर्राष्ट्रिय",
+      slug: "international",
+      description: "International news",
+      descriptionNe: "अन्तर्राष्ट्रिय समाचार",
+      color: "#0891b2",
+      sortOrder: 6,
+      isVisibleInNav: true,
+      isFeatured: false,
+      isActive: true,
+    },
+  ];
+
+  let seededCount = 0;
+  for (const cat of defaultCategories) {
+    const existing = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.slug, cat.slug))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(categories).values(cat);
+      seededCount++;
+    }
+  }
+
+  return { seededCount };
+}
+
 // ─── Articles ──────────────────────────────────────────────────────────────
 export async function getPublishedArticles(opts: {
   limit?: number;
@@ -409,6 +505,8 @@ export async function createArticle(data: {
   tags?: string;
   metaTitle?: string;
   metaDescription?: string;
+  aiSummary?: string;
+  aiSummaryNe?: string;
   scheduledAt?: Date;
   publishedAt?: Date;
 }) {

@@ -189,7 +189,6 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
-                { href: "/", en: "Home", ne: "गृहपृष्ठ" },
                 { href: "/bookmarks", en: "Bookmarks", ne: "बुकमार्क" },
                 { href: "/search", en: "Search", ne: "खोज" },
                 { href: "#about", en: "About Us", ne: "हाम्रो बारेमा" },

@@ -1,13 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Home, TrendingUp, Grid3x3, Search, User } from "lucide-react";
+import { TrendingUp, Grid3x3, Search, User } from "lucide-react";
 
 export default function MobileBottomNav() {
   const [location] = useLocation();
   const { isAuthenticated, loading } = useAuth();
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Search, label: "Search" },
     { href: "/category", icon: Grid3x3, label: "Categories" },
     { href: "/trending", icon: TrendingUp, label: "Trending" },
@@ -19,7 +18,6 @@ export default function MobileBottomNav() {
   ];
 
   const isActive = (href: string) => {
-    if (href === "/") return location === "/";
     return location.startsWith(href);
   };
 

@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { useNavbarCategories } from "@/services/navbar";
+import { getNavbarCategories } from "@/data/navbar-categories";
+
+interface Category {
+  id: number;
+  name: string;
+  nameNe?: string | null;
+  slug: string;
+}
 
 export default function HomeNavbar() {
   const { t, isNepali } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pathname] = useLocation();
 
-  // Get navbar categories from service layer
-  const { loading, data: menuItems } = useNavbarCategories();
+  // Get navbar categories from central database source with fallback to default categories
+  const { data: menuItems, isLoading: categoriesLoading } =
+    trpc.categories.navList.useQuery();
 
-  // Loading-safe: if service fails, use empty array to prevent crashes
-  const categories = menuItems ?? [];
+  // Fallback to default categories if API returns empty or on error
+  const categories =
+    menuItems && menuItems.length > 0 ? menuItems : getNavbarCategories();
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 h-16 relative">
@@ -31,12 +41,12 @@ export default function HomeNavbar() {
         {/* Navigation Menu */}
         <div className="hidden md:block">
           <div className="flex items-center space-x-4 lg:space-x-6">
-            {categories.map(item => (
+            {categories.map((item: Category) => (
               <Link
                 key={item.id}
-                href={item.slug === "/" ? "/" : `/category/${item.slug}`}
+                href={`/category/${item.slug}`}
                 className={`${
-                  pathname === (item.slug === "/" ? "/" : `/category/${item.slug}`)
+                  pathname === `/category/${item.slug}`
                     ? "text-news-red bg-news-red/10"
                     : "text-gray-700 hover:text-news-red hover:bg-gray-50"
                 } px-3 lg:px-4 py-2 text-sm font-medium rounded-md transition-all duration-300 transform hover:scale-105 ${
@@ -80,10 +90,10 @@ export default function HomeNavbar() {
           <div className="md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg border-b border-gray-200 z-[60]">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
               <div className="py-3 sm:py-4 space-y-1 sm:space-y-2">
-                {categories.map(item => (
+                {categories.map((item: Category) => (
                   <Link
                     key={item.id}
-                    href={item.slug === "/" ? "/" : `/category/${item.slug}`}
+                    href={`/category/${item.slug}`}
                     className={`block px-3 sm:px-4 py-3 text-base font-medium text-gray-700 hover:text-news-red hover:bg-gray-50 rounded-md transition-colors ${
                       isNepali ? "font-nepali" : ""
                     }`}

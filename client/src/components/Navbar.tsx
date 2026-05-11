@@ -3,9 +3,9 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useNavbarCategories } from "@/services/navbar";
+import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
-import type { NavbarCategory } from "@/data/navbar-categories";
+import { getNavbarCategories } from "@/data/navbar-categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,9 +44,14 @@ export default function Navbar() {
   const [newsletterOpen, setNewsletterOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Use mock navbar categories (ready for future backend integration)
-  const { loading, data: categoriesData } = useNavbarCategories();
-  const categories = categoriesData ?? [];
+  // Use central category source from database with fallback to default categories
+  const { data: categoriesData, isLoading: categoriesLoading } =
+    trpc.categories.navList.useQuery();
+  // Fallback to default categories if API returns empty or on error
+  const categories =
+    categoriesData && categoriesData.length > 0
+      ? categoriesData
+      : getNavbarCategories();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -181,12 +186,12 @@ export default function Navbar() {
 
             {/* Desktop category nav - left aligned */}
             <nav className="flex items-center gap-2">
-              {categories.slice(0, 6).map((cat: NavbarCategory) => (
+              {categories.slice(0, 6).map((cat) => (
                 <Link
                   key={cat.id}
-                  href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                  href={`/category/${cat.slug}`}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-news-red ${
-                    location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
+                    location === `/category/${cat.slug}`
                       ? "bg-news-red text-white shadow-sm"
                       : "text-gray-700 dark:text-gray-300 hover:shadow-sm"
                   } ${language === "ne" ? "font-nepali" : ""}`}
@@ -206,14 +211,14 @@ export default function Navbar() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="border-gray-200 dark:border-gray-700 dark:bg-gray-800 shadow-lg">
-                    {categories.slice(6).map((cat: NavbarCategory) => (
+                    {categories.slice(6).map((cat) => (
                       <DropdownMenuItem
                         key={cat.id}
                         asChild
                         className="hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-news-red"
                       >
                         <Link
-                          href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                          href={`/category/${cat.slug}`}
                           className={`text-sm font-medium dark:text-gray-200 ${language === "ne" ? "font-nepali" : ""}`}
                         >
                           {language === "ne" && cat.nameNe
@@ -403,12 +408,12 @@ export default function Navbar() {
               {/* Mobile menu content - categories only */}
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-1">
-                  {categories.map((cat: NavbarCategory) => (
+                  {categories.map((cat) => (
                     <Link
                       key={cat.id}
-                      href={cat.slug === "/" ? "/" : `/category/${cat.slug}`}
+                      href={`/category/${cat.slug}`}
                       className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-news-red ${
-                        location === (cat.slug === "/" ? "/" : `/category/${cat.slug}`)
+                        location === `/category/${cat.slug}`
                           ? "bg-news-red text-white shadow-sm"
                           : "text-gray-700 dark:text-gray-300"
                       } ${language === "ne" ? "font-nepali" : ""}`}

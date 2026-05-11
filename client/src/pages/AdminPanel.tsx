@@ -619,6 +619,8 @@ function ArticleEditor({
     tags: "",
     metaTitle: "",
     metaDescription: "",
+    aiSummary: "",
+    aiSummaryNe: "",
     generateSummary: false,
   });
 
@@ -645,6 +647,8 @@ function ArticleEditor({
       tags: existing.tags ?? "",
       metaTitle: existing.metaTitle ?? "",
       metaDescription: existing.metaDescription ?? "",
+      aiSummary: existing.aiSummary ?? "",
+      aiSummaryNe: existing.aiSummaryNe ?? "",
       generateSummary: false,
     });
     setInitialized(true);
@@ -726,6 +730,8 @@ function ArticleEditor({
       tags: form.tags || undefined,
       metaTitle: form.metaTitle || undefined,
       metaDescription: form.metaDescription || undefined,
+      aiSummary: form.aiSummary || undefined,
+      aiSummaryNe: form.aiSummaryNe || undefined,
       generateSummary: form.generateSummary,
     };
 
@@ -878,6 +884,42 @@ function ArticleEditor({
               placeholder="https://www.youtube.com/watch?v=..."
               className="mt-1"
             />
+          </div>
+
+          {/* AI Summary */}
+          <div className="border border-border rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              {t("AI Summary", "AI सारांश")}
+            </h3>
+            <div>
+              <Label className="text-xs">
+                {t("AI Summary (English)", "AI सारांश (अंग्रेजी)")}
+              </Label>
+              <Textarea
+                value={form.aiSummary}
+                onChange={e =>
+                  setForm(f => ({ ...f, aiSummary: e.target.value }))
+                }
+                placeholder="Auto-generated or manually entered summary in English..."
+                rows={3}
+                className="mt-1 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-nepali">
+                {t("AI Summary (Nepali)", "AI सारांश (नेपाली)")}
+              </Label>
+              <Textarea
+                value={form.aiSummaryNe}
+                onChange={e =>
+                  setForm(f => ({ ...f, aiSummaryNe: e.target.value }))
+                }
+                placeholder="नेपालीमा स्वत: उत्पन्न वा हातले टाइप गरिएको सारांश..."
+                rows={3}
+                className="mt-1 text-sm font-nepali"
+              />
+            </div>
           </div>
 
           {/* SEO */}
@@ -1148,6 +1190,21 @@ function AdminCategories() {
     },
   });
 
+  const seed = trpc.categories.seed.useMutation({
+    onSuccess: (result) => {
+      utils.categories.list.invalidate();
+      toast.success(
+        t(
+          `Seeded ${result.seededCount} default categories`,
+          `${result.seededCount} डिफल्ट श्रेणीहरू सिड गरियो`
+        )
+      );
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
+
   const resetForm = () => {
     setForm({
       name: "",
@@ -1190,10 +1247,13 @@ function AdminCategories() {
         <Button
           size="sm"
           className="bg-green-600 text-white gap-1"
-          onClick={() => utils.categories.seed.mutate()}
+          onClick={() => seed.mutate()}
+          disabled={seed.isPending}
         >
           <Plus className="w-3.5 h-3.5" />
-          {t("Seed Default Categories", "डिफल्ट श्रेणीहरू")}
+          {seed.isPending
+            ? t("Seeding...", "सिड गर्दै...")
+            : t("Seed Default Categories", "डिफल्ट श्रेणीहरू")}
         </Button>
       </div>
 
